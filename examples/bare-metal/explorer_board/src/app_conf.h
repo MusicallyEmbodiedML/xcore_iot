@@ -9,7 +9,7 @@
 #define appconfMIC_COUNT                        MIC_ARRAY_CONFIG_MIC_COUNT
 #define appconfFRAMES_IN_ALL_CHANS              (appconfAUDIO_FRAME_LENGTH * appconfMIC_COUNT)
 #define appconfEXP                              -31
-#define appconfINITIAL_GAIN                     20
+#define appconfINITIAL_GAIN                     0
 #define appconfAUDIO_PIPELINE_MAX_GAIN          60
 #define appconfAUDIO_PIPELINE_MIN_GAIN          0
 #define appconfAUDIO_PIPELINE_GAIN_STEP         4

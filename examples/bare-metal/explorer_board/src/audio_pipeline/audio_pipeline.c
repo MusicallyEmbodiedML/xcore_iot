@@ -17,6 +17,7 @@
 #include "audio_pipeline.h"
 
 /* C++ declarations */
+#include <random.h>
 extern void sine_tone_init(float sample_rate, float freq);
 extern int32_t sine_tone_generate(void);
 
@@ -26,6 +27,9 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
     // initialise the array which will hold the data
     int32_t DWORD_ALIGNED input [appconfAUDIO_FRAME_LENGTH][appconfMIC_COUNT];
     int32_t DWORD_ALIGNED output [appconfMIC_COUNT][appconfAUDIO_FRAME_LENGTH];
+    // Initialise sine tone
+    sine_tone_init(44100., 440.);
+    
 
     while(1)
     {
@@ -36,6 +40,11 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
             for(int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++){
                 output[ch][smp] = input[smp][ch];
             }
+        }
+        for (int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++) {
+            int32_t y = sine_tone_generate() / 10;
+            //int32_t y = rand() / 100;
+            output[0][smp] = y;
         }
         // send the frame to the next stage
         s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
@@ -116,8 +125,6 @@ void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
     bfp_s32_t ch0, ch1;
     bfp_s32_init(&ch0, input[0], appconfEXP, appconfAUDIO_FRAME_LENGTH, 0);
     bfp_s32_init(&ch1, input[1], appconfEXP, appconfAUDIO_FRAME_LENGTH, 0);
-    // Initialise sine tone
-    sine_tone_init(44100., 440.);
 
     triggerable_disable_all();
     // initialise event
