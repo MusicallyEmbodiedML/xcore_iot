@@ -16,6 +16,11 @@
 #include "app_conf.h"
 #include "audio_pipeline.h"
 
+/* C++ declarations */
+extern void sine_tone_init(float sample_rate, float freq);
+extern int32_t sine_tone_generate(void);
+
+
 //#include <hwtimer.h>
 void ap_stage_a(chanend_t c_input, chanend_t c_output) {
     // initialise the array which will hold the data
@@ -111,6 +116,8 @@ void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
     bfp_s32_t ch0, ch1;
     bfp_s32_init(&ch0, input[0], appconfEXP, appconfAUDIO_FRAME_LENGTH, 0);
     bfp_s32_init(&ch1, input[1], appconfEXP, appconfAUDIO_FRAME_LENGTH, 0);
+    // Initialise sine tone
+    sine_tone_init(44100., 440.);
 
     triggerable_disable_all();
     // initialise event
