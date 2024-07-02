@@ -16,8 +16,7 @@
 #include "app_conf.h"
 #include "audio_pipeline.h"
 
-/* C++ declarations */
-#include <random.h>
+/* C++ extern functions */
 extern void sine_tone_init(float sample_rate, float freq);
 extern int32_t sine_tone_generate(void);
 
@@ -28,7 +27,7 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
     int32_t DWORD_ALIGNED input [appconfAUDIO_FRAME_LENGTH][appconfMIC_COUNT];
     int32_t DWORD_ALIGNED output [appconfMIC_COUNT][appconfAUDIO_FRAME_LENGTH];
     // Initialise sine tone
-    sine_tone_init(44100., 440.);
+    sine_tone_init(16000., 440.);
     
 
     while(1)
