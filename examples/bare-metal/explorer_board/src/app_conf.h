@@ -18,4 +18,8 @@
 #define appconfPDM_CLOCK_FREQUENCY              3072000
 #define appconfPIPELINE_AUDIO_SAMPLE_RATE       16000
 
+#define MLP_TEST                                1
+#define MLP_PARALLEL                            0 && MLP_TEST
+#define SINE_TEST                               0
+
 #endif /* APP_CONF_H_ */

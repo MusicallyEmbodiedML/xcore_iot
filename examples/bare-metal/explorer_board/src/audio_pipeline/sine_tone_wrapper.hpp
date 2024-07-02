@@ -3,10 +3,13 @@
 
 extern "C" {
 
+#if SINE_TEST
     #include <stdint.h>
 
     void sine_tone_init(float sample_rate, float freq);
     int32_t sine_tone_generate(void);
+
+#endif  // SINE_TEST
 
 }
 

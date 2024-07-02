@@ -1,5 +1,8 @@
 #include "sine_tone_wrapper.hpp"
 
+#if SINE_TEST
+
+
 #include "SineTone.hpp"
 #include <cmath>
 #include <new>
@@ -22,3 +25,6 @@ int32_t sine_tone_generate(void) {
     }
     return y;
 }
+
+
+#endif  // SINE_TEST

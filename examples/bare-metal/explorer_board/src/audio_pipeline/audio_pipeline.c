@@ -16,9 +16,11 @@
 #include "app_conf.h"
 #include "audio_pipeline.h"
 
+#if SINE_TEST
 /* C++ extern functions */
 extern void sine_tone_init(float sample_rate, float freq);
 extern int32_t sine_tone_generate(void);
+#endif
 
 
 //#include <hwtimer.h>
@@ -26,8 +28,10 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
     // initialise the array which will hold the data
     int32_t DWORD_ALIGNED input [appconfAUDIO_FRAME_LENGTH][appconfMIC_COUNT];
     int32_t DWORD_ALIGNED output [appconfMIC_COUNT][appconfAUDIO_FRAME_LENGTH];
+#if SINE_TEST
     // Initialise sine tone
     sine_tone_init(16000., 440.);
+#endif
     
 
     while(1)
@@ -40,11 +44,12 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
                 output[ch][smp] = input[smp][ch];
             }
         }
+#if SINE_TEST
         for (int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++) {
             int32_t y = sine_tone_generate() / 10;
-            //int32_t y = rand() / 100;
             output[0][smp] = y;
         }
+#endif
         // send the frame to the next stage
         s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
     }

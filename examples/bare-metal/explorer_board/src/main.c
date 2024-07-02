@@ -8,11 +8,26 @@
 #include "audio_pipeline.h"
 #include "platform_init.h"
 
+#if MLP_TEST
+
+extern void run_mlp_test(void);
+
+#if MLP_PARALLEL
+#include <xcore/parallel.h>
+DECLARE_JOB(run_mlp_test, (void));
+#endif
+
+#endif
+
 void main_tile0(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 {
     (void)c0;
     (void)c2;
     (void)c3;
+
+#if MLP_TEST && !(MLP_PARALLEL)
+    run_mlp_test();
+#endif
 
     platform_init_tile_0(c1);
 
@@ -20,7 +35,11 @@ void main_tile0(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
         PJOB(spi_demo, (&tile0_ctx->spi_device_ctx)),
         PJOB(gpio_server, (tile0_ctx->c_from_gpio, tile0_ctx->c_to_gpio)),
         PJOB(flash_demo, ()),
+#if MLP_PARALLEL
+        PJOB(run_mlp_test, ()),
+#else
         PJOB(burn, ()),
+#endif
         PJOB(burn, ()),
         PJOB(burn, ()),
         PJOB(burn, ()),
