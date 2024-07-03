@@ -50,7 +50,7 @@ void run_mlp_test(void) {
         printf("end time: %lf\n", t2 * 1e-8);
         printf("total time: %lf\n", (t2-now) * 1e-8);
     }
-    printf("===");
+    printf("===\n");
 
 #if MLP_PARALLEL
     while(1) {;}
