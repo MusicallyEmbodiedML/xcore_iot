@@ -32,3 +32,6 @@
 [submodule "modules/meml/mlp"]
 	path = modules/meml/mlp
 	url = git@github.com:MusicallyEmbodiedML/MLP_XMOS.git
+[submodule "modules/meml/fmsynth"]
+	path = modules/meml/fmsynth
+	url = https://github.com/MusicallyEmbodiedML/fmsynth.git
