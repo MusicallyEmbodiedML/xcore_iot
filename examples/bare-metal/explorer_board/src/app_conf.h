@@ -20,6 +20,6 @@
 
 #define MLP_TEST                                1
 #define MLP_PARALLEL                            1 && MLP_TEST
-#define SINE_TEST                               0
+#define SINE_TEST                               1
 
 #endif /* APP_CONF_H_ */

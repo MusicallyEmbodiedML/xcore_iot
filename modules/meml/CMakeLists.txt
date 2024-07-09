@@ -8,7 +8,7 @@ set(MEML_HEADERS)
 ##
 # Add submodules here
 ##
-#add_subdirectory(test_tones)
+add_subdirectory(test_tones)
 add_subdirectory(mlp)
 ##
 # /submodules

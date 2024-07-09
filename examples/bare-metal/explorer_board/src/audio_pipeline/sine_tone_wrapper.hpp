@@ -3,6 +3,8 @@
 
 extern "C" {
 
+#include "app_conf.h"
+
 #if SINE_TEST
     #include <stdint.h>
 
