@@ -10,11 +10,11 @@
 
 #if MLP_TEST
 
-extern void run_mlp_test(void);
-
 #if MLP_PARALLEL
 #include <xcore/parallel.h>
-DECLARE_JOB(run_mlp_test, (void));
+
+//DECLARE_JOB(run_mlp_test, (void));
+DECLARE_JOB(funclearntest_main, (void));
 #endif
 
 #endif
@@ -36,7 +36,8 @@ void main_tile0(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
         PJOB(gpio_server, (tile0_ctx->c_from_gpio, tile0_ctx->c_to_gpio)),
         PJOB(flash_demo, ()),
 #if MLP_PARALLEL
-        PJOB(run_mlp_test, ()),
+        //PJOB(run_mlp_test, ()),
+        PJOB(funclearntest_main, ()),
 #else
         PJOB(burn, ()),
 #endif
