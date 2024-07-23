@@ -15,7 +15,7 @@ In order for the demo to work, you must connect Pin 36 on J10 to the UART TX of 
 
 The demo is set up to read UART with the following configuration:
 
-- Baud: 9600
+- Baud: 115200
 - Data bits: 8
 - Parity: None
 - Stop bits: 2
