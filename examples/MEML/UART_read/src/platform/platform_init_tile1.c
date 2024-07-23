@@ -24,7 +24,7 @@ void uart_rx_error_callback(uart_callback_code_t callback_code, void *app_data){
 
 static void tile1_uart_init(void)
 {
-    const unsigned baud_rate = 9600;
+    const unsigned baud_rate = 115200;
 
     hwtimer_t tmr_rx = hwtimer_alloc();
     uart_rx_init(
