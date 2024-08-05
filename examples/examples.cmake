@@ -2,6 +2,7 @@
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     ## MEML examples
     include(${CMAKE_CURRENT_LIST_DIR}/MEML/UART_example/UART_example.cmake)
+    include(${CMAKE_CURRENT_LIST_DIR}/MEML/UART_read/UART_read.cmake)
     
     ## Bare metal examples
     include(${CMAKE_CURRENT_LIST_DIR}/bare-metal/explorer_board/explorer_board.cmake)
