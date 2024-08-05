@@ -26,3 +26,9 @@
 	path = modules/inferencing/lib_tflite_micro
 	url = git@github.com:xmos/lib_tflite_micro.git
 	ignore = dirty
+[submodule "modules/meml/test_tones"]
+	path = modules/meml/test_tones
+	url = git@github.com:MusicallyEmbodiedML/test_tones.git
+[submodule "modules/meml/mlp"]
+	path = modules/meml/mlp
+	url = git@github.com:MusicallyEmbodiedML/MLP_XMOS.git
