@@ -4,6 +4,10 @@
 /* App headers */
 #include "../app_conf.h"
 #include "platform_init.h"
+#include <stdbool.h>
+
+static bool triggered_rx = false;
+static bool triggered_tx = false;
 
 static void tile1_setup_dac(void);
 static void tile1_i2s_init(void);
@@ -66,12 +70,20 @@ static i2s_restart_t i2s_restart_check(chanend_t *input_c)
 I2S_CALLBACK_ATTR
 static void i2s_receive(chanend_t *input_c, size_t num_in, const int32_t *i2s_sample_buf)
 {
-  s_chan_out_buf_word(*input_c, (uint32_t*)i2s_sample_buf, appconfFRAMES_IN_ALL_CHANS);
+    if (!triggered_rx){
+        debug_printf("triggered rx\n");
+        triggered_rx = true;
+    }
+    s_chan_out_buf_word(*input_c, (uint32_t*)i2s_sample_buf, appconfFRAMES_IN_ALL_CHANS);
 }
 
 I2S_CALLBACK_ATTR
 static void i2s_send(chanend_t *input_c, size_t num_out, int32_t *i2s_sample_buf)
 {
+    if (!triggered_tx){
+        debug_printf("triggered tx\n");
+        triggered_tx = true;
+    }    
     s_chan_in_buf_word(*input_c, (uint32_t*)i2s_sample_buf, appconfFRAMES_IN_ALL_CHANS);
 }
 

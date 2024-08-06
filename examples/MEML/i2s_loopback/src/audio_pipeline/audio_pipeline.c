@@ -6,6 +6,7 @@
 #include <xs1.h>
 #include <string.h>
 #include <xcore/triggerable.h>
+#include <stdbool.h>
 
 /* Platform headers */
 #include "xcore_utils.h"
@@ -15,6 +16,9 @@
 /* App headers */
 #include "app_conf.h"
 #include "audio_pipeline.h"
+
+static bool triggered_stage_b = false;
+static bool triggered_stage_c = false;
 
 //#include <hwtimer.h>
 void ap_stage_a(chanend_t c_input, chanend_t c_output) {
@@ -38,6 +42,7 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
 }
 
 void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
+
     // initialise the array which will hold the data
     int32_t DWORD_ALIGNED input [appconfAUDIO_FRAME_LENGTH][appconfMIC_COUNT];
     int32_t DWORD_ALIGNED output[appconfMIC_COUNT][appconfAUDIO_FRAME_LENGTH];
@@ -62,6 +67,10 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
         {
             input_frames:
             {
+                if (!triggered_stage_b){
+                    debug_printf("triggered stage b\n");
+                    triggered_stage_b = true;
+                }
                 // recieve frame over the channel
                 s_chan_in_buf_word(c_input, (uint32_t*) input, appconfFRAMES_IN_ALL_CHANS);
                 for(int ch = 0; ch < appconfMIC_COUNT; ch ++){
@@ -130,6 +139,10 @@ void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
         {
             input_frames:
             {
+                if (!triggered_stage_c){
+                    debug_printf("triggered stage c\n");
+                    triggered_stage_c = true;
+                }
                 uint8_t led_byte = 0;
                 // recieve frame over the channel
                 s_chan_in_buf_word(c_input, (uint32_t*) input, appconfFRAMES_IN_ALL_CHANS);
