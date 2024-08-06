@@ -10,6 +10,7 @@ set(MEML_HEADERS)
 ##
 add_subdirectory(test_tones)
 add_subdirectory(mlp)
+add_subdirectory(fmsynth)
 ##
 # /submodules
 ##
