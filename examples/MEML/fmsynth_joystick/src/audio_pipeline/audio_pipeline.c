@@ -1,6 +1,8 @@
 // Copyright 2021-2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
+#include <stdio.h>
+
 /* System headers */
 #include <platform.h>
 #include <xs1.h>
@@ -40,12 +42,12 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
                 output[ch][smp] = input[smp][ch];
             }
         }
-// #if SINE_TEST
+#if 0
         for (int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++) {
             int32_t y = fmsynth_generate() / 10;
             output[0][smp] = y;
         }
-// #endif
+#endif
         // send the frame to the next stage
         s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
     }
@@ -161,6 +163,12 @@ void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
                         output[smp][ch] = input[ch][smp];
                     }
                 }
+                #if 1
+                for (int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++) {
+                    int32_t y = fmsynth_generate() / 10;
+                    output[smp][0] = y;
+                }
+                #endif
                 // send frame over the channel
                 s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
             }
