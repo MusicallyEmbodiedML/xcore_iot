@@ -27,7 +27,6 @@ target_include_directories(meml_lib
 
 target_compile_definitions(meml_lib
     PRIVATE
-        MLP_VERBOSE=1
 )
 
 target_compile_options(meml_lib

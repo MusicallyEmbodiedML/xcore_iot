@@ -16,6 +16,14 @@
 #include "app_conf.h"
 #include "audio_pipeline.h"
 
+
+// #if SINE_TEST
+/* C++ extern functions */
+extern void fmsynth_init(float sample_rate);
+extern int32_t fmsynth_generate(void);
+// #endif
+
+
 //#include <hwtimer.h>
 void ap_stage_a(chanend_t c_input, chanend_t c_output) {
     // initialise the array which will hold the data
@@ -32,6 +40,12 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
                 output[ch][smp] = input[smp][ch];
             }
         }
+// #if SINE_TEST
+        for (int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++) {
+            int32_t y = fmsynth_generate() / 10;
+            output[0][smp] = y;
+        }
+// #endif
         // send the frame to the next stage
         s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
     }

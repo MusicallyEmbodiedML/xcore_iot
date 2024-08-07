@@ -58,7 +58,9 @@ target_sources(${MEML_APP_NAME} PUBLIC ${APP_SOURCES})
 target_include_directories(${MEML_APP_NAME} PUBLIC ${APP_INCLUDES})
 target_compile_definitions(${MEML_APP_NAME} PRIVATE ${APP_COMPILE_DEFINITIONS})
 target_compile_options(${MEML_APP_NAME} PRIVATE ${APP_COMPILER_FLAGS})
-target_link_libraries(${MEML_APP_NAME} PUBLIC core::general io::all framework_core_multitile_support)
+target_link_libraries(${MEML_APP_NAME} PUBLIC
+                      core::general io::all framework_core_multitile_support
+                      meml_lib)
 target_link_options(${MEML_APP_NAME} PRIVATE ${APP_LINK_OPTIONS})
 
 # MCLK_FREQ,  PDM_FREQ, MIC_COUNT,  SAMPLES_PER_FRAME
