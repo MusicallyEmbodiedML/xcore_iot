@@ -28,7 +28,7 @@ enum {
 #include "app_conf.h"
 #include "audio_pipeline.h"
 
-#define ENABLE_FMSYNTH    0
+#define ENABLE_FMSYNTH    1
 
 
 #if ENABLE_FMSYNTH

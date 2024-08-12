@@ -3,7 +3,7 @@
 #**********************
 file(GLOB_RECURSE APP_SOURCES
      ${CMAKE_CURRENT_LIST_DIR}/src/*.c
-#     ${CMAKE_CURRENT_LIST_DIR}/src/*.cpp
+     ${CMAKE_CURRENT_LIST_DIR}/src/*.cpp
 )
 set(APP_INCLUDES
     ${CMAKE_CURRENT_LIST_DIR}/src
@@ -61,7 +61,7 @@ target_compile_definitions(${MEML_APP_NAME} PRIVATE ${APP_COMPILE_DEFINITIONS})
 target_compile_options(${MEML_APP_NAME} PRIVATE ${APP_COMPILER_FLAGS})
 target_link_libraries(${MEML_APP_NAME} PUBLIC
                       core::general io::all framework_core_multitile_support
-#                      meml_lib
+                      meml_lib
 )
 target_link_options(${MEML_APP_NAME} PRIVATE ${APP_LINK_OPTIONS})
 
