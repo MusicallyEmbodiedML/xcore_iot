@@ -1,13 +1,23 @@
 // Copyright 2021-2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
-#include <stdio.h>
-
 /* System headers */
 #include <platform.h>
 #include <xs1.h>
 #include <string.h>
 #include <xcore/triggerable.h>
+
+#define XSCOPE_PROBES    0
+
+#if XSCOPE_PROBES
+
+#include <xscope.h>
+enum {
+    probe_ap_stage_a,
+    probe_ap_stage_c,
+};
+
+#endif  // XSCOPE_PROBES
 
 /* Platform headers */
 #include "xcore_utils.h"
@@ -18,12 +28,14 @@
 #include "app_conf.h"
 #include "audio_pipeline.h"
 
+#define ENABLE_FMSYNTH    0
 
-// #if SINE_TEST
+
+#if ENABLE_FMSYNTH
 /* C++ extern functions */
 extern void fmsynth_init(float sample_rate);
 extern int32_t fmsynth_generate(void);
-// #endif
+#endif
 
 
 //#include <hwtimer.h>
@@ -31,6 +43,11 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
     // initialise the array which will hold the data
     int32_t DWORD_ALIGNED input [appconfAUDIO_FRAME_LENGTH][appconfMIC_COUNT];
     int32_t DWORD_ALIGNED output [appconfMIC_COUNT][appconfAUDIO_FRAME_LENGTH];
+
+#if ENABLE_FMSYNTH
+    // Init MEML modules
+    fmsynth_init(appconfPIPELINE_AUDIO_SAMPLE_RATE);
+#endif
 
     while(1)
     {
@@ -42,12 +59,16 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
                 output[ch][smp] = input[smp][ch];
             }
         }
-#if 0
+#if ENABLE_FMSYNTH
         for (int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++) {
             int32_t y = fmsynth_generate() / 10;
             output[0][smp] = y;
-        }
+
+#if XSCOPE_PROBES
+            xscope_float(probe_ap_stage_a, output[0][smp]);
 #endif
+        }
+#endif  // ENABLE_FMSYNTH
         // send the frame to the next stage
         s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
     }
@@ -163,12 +184,9 @@ void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
                         output[smp][ch] = input[ch][smp];
                     }
                 }
-                #if 1
-                for (int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++) {
-                    int32_t y = fmsynth_generate() / 10;
-                    output[smp][0] = y;
-                }
-                #endif
+#if XSCOPE_PROBES
+                xscope_float(probe_ap_stage_c, output[0][0]);
+#endif
                 // send frame over the channel
                 s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
             }

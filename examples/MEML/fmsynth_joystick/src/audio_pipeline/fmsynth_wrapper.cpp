@@ -1,4 +1,4 @@
-#define TEST_WITH_SINE    1
+#define TEST_WITH_SINE    0
 
 #include "fmsynth_wrapper.hpp"
 
