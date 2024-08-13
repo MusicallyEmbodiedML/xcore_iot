@@ -31,11 +31,7 @@ enum {
 #define ENABLE_FMSYNTH    1
 
 
-#if ENABLE_FMSYNTH
-/* C++ extern functions */
-extern void fmsynth_init(float sample_rate);
-extern int32_t fmsynth_generate(void);
-#endif
+#include "c_wrapper_decl.h"
 
 
 //#include <hwtimer.h>

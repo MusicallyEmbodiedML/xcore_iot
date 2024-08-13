@@ -11,13 +11,14 @@ set(APP_INCLUDES
     ${CMAKE_CURRENT_LIST_DIR}/src/platform
     ${CMAKE_CURRENT_LIST_DIR}/src/misc
     ${CMAKE_CURRENT_LIST_DIR}/src/demos
+    ${CMAKE_CURRENT_LIST_DIR}/src/cpp_wrappers
 )
 
 #**********************
 # Flags
 #**********************
 set(APP_COMPILER_FLAGS
-    -Os
+    -O0
     -g
     -report
     -fxscope
@@ -25,6 +26,7 @@ set(APP_COMPILER_FLAGS
     -Wno-xcore-fptrgroup
     ${CMAKE_CURRENT_LIST_DIR}/src/config.xscope
     ${CMAKE_CURRENT_LIST_DIR}/XCORE-AI-EXPLORER.xn
+    -
 )
 set(APP_COMPILE_DEFINITIONS
     DEBUG_PRINT_ENABLE=1
@@ -63,6 +65,7 @@ target_link_libraries(${MEML_APP_NAME} PUBLIC
                       core::general io::all framework_core_multitile_support
                       meml_lib
 )
+#target_compile_features(${MEML_APP_NAME} PUBLIC cxx_std_14)
 target_link_options(${MEML_APP_NAME} PRIVATE ${APP_LINK_OPTIONS})
 
 # MCLK_FREQ,  PDM_FREQ, MIC_COUNT,  SAMPLES_PER_FRAME

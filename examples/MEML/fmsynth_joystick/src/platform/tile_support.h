@@ -22,6 +22,9 @@ struct tile0_struct {
     spi_master_device_t spi_device_ctx;
     spi_master_t spi_ctx;
     i2c_master_t i2c_ctx;
+    // UART
+    uart_rx_t uart_rx_ctx;
+    uart_tx_t uart_tx_ctx;
 };
 
 typedef struct tile1_struct tile1_ctx_t;
@@ -36,9 +39,6 @@ struct tile1_struct {
     port_t p_mclk;
     xclock_t bclk;
     chanend_t c_i2s_to_dac;
-
-    uart_rx_t uart_rx_ctx;
-    uart_tx_t uart_tx_ctx;
 };
 
 extern tile0_ctx_t *tile0_ctx;

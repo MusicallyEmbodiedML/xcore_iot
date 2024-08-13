@@ -9,6 +9,7 @@ static void tile0_init_i2c(void);
 static void tile0_init_spi(void);
 static void tile0_init_spi_device(spi_master_t *spi_ctx);
 static void tile0_init_flash(void);
+static void tile0_uart_init(void);
 
 void platform_init_tile_0(chanend_t c_other_tile)
 {
@@ -37,6 +38,7 @@ void platform_init_tile_0(chanend_t c_other_tile)
     tile0_init_spi_device(&tile0_ctx->spi_ctx);
 
     tile0_init_flash();
+    tile0_uart_init();
 }
 
 static void tile0_init_spi(void)
@@ -91,4 +93,45 @@ static void tile0_init_flash(void)
     fl_QuadDeviceSpec default_spec = FL_QUADDEVICE_DEFAULT;
     fl_connectToDevice(&qspi_ports, &default_spec, 1);
     fl_quadEnable();
+}
+
+HIL_UART_RX_CALLBACK_ATTR
+void uart_rx_error_callback(uart_callback_code_t callback_code, void *app_data){
+    //debug_printf("uart_rx_error: 0x%x\n", callback_code);
+}
+
+static void tile0_uart_init(void)
+{
+    const unsigned baud_rate = 921600;
+
+    hwtimer_t tmr_tx = hwtimer_alloc();
+    uart_tx_init(
+        &tile0_ctx->uart_tx_ctx,
+        XS1_PORT_1P,  //X1D39
+        baud_rate,
+        8,
+        UART_PARITY_NONE,
+        1,
+        tmr_tx,
+        NULL,
+        0,
+        NULL,
+        NULL
+        );
+
+    hwtimer_t tmr_rx = hwtimer_alloc();
+    uart_rx_init(
+        &tile0_ctx->uart_rx_ctx,
+        XS1_PORT_1M, //X1D36
+        baud_rate,
+        8,
+        UART_PARITY_NONE,
+        1,
+        tmr_rx,
+        NULL, // No buffer
+        0,
+        NULL, // No rx complete callback
+        uart_rx_error_callback,
+        &tile0_ctx->uart_rx_ctx
+        );
 }

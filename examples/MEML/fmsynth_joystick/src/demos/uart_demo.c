@@ -5,6 +5,7 @@
 #include <platform.h>
 #include <xs1.h>
 #include <stdbool.h>
+#include <string.h>
 
 /* Platform headers */
 #include "soc.h"
@@ -15,39 +16,40 @@
 #include "app_conf.h"
 #include "app_demos.h"
 
-static bool logged_error = false;
+
+#define MESSAGE_SIZE 20
+char buffer[MESSAGE_SIZE];
+
 
 void uart_rx_demo(uart_rx_t* uart_rx_ctx)
 {
-    uint8_t expected = 0;
-
+    debug_printf("Initialised UART RX\n");
+    int i = 0;
     while(1) {
         uint8_t rx = uart_rx(uart_rx_ctx);
-        if(rx != expected && !logged_error){
-            debug_printf("UART data error, expected: %d got: %d\n", expected, rx);
-            debug_printf("Further UART errors will NOT be printed. Have you connected pins X1D36 and X1D39?\n\n");
-            logged_error = true;
+        debug_printf("Received: %u\n", rx);
+        if (rx == 10) {
+            debug_printf("Buffer: %s\n", buffer);
+            char * p;
+            p = strtok(buffer, ",");
+            while (p != NULL) {
+                int coord = atoi(p);
+                debug_printf("Coordinate: %u\n", coord);
+                p = strtok(NULL, ",");
+            }
+            i = 0;
+        } else {
+            if (i >= MESSAGE_SIZE)
+                i = 0;
+            buffer[i] = (char)rx;
+            i++;
         }
-        expected++;
+
     }
 }
 
 
 void uart_tx_demo(uart_tx_t* uart_tx_ctx)
 {
-    debug_printf("Starting tx ramp test @ %ubaud..\n", XS1_TIMER_HZ / uart_tx_ctx->bit_time_ticks);
-
-    uint8_t tx_data = 0;
-    uint32_t time_now = get_reference_time();
-    while(get_reference_time() < (time_now + 100000)); // Wait for a millisecond
-
-    while(1) {
-        for(int i=0; i<256; i++){
-            uart_tx(uart_tx_ctx, tx_data);
-            tx_data+=1;
-        }
-        uint32_t time_now = get_reference_time();
-        while(get_reference_time() < (time_now + 10000000)); // Wait for 100 milliseconds
-        // debug_printf("Sent: %u\n", tx_data);
-    }   
+    return;
 }
