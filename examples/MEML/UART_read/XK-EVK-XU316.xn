@@ -58,6 +58,7 @@
             <Port Location="XS1_PORT_4F"  Name="WIFI_CS_N"/>
             <Port Location="XS1_PORT_1L"  Name="WIFI_CLK"/>
             <Port Location="XS1_PORT_1M"  Name="WIFI_MISO"/>
+            <Port Location="XS1_PORT_1A"  Name="PORT_UART_RX"/>
           </Tile>
           <Tile Number="1" Reference="tile[1]">
             <!-- I2C ports -->

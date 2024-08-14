@@ -8,13 +8,14 @@
 #include <stdint.h>
 #include <xcore/chanend.h>
 #include <xcore/parallel.h>
+#include "uart.h"
 
 // FMSynth
 extern void fmsynth_init(float sample_rate);
 extern int32_t fmsynth_generate(void);
 // MLP Wrapper
-//extern void mlp_task(chanend_t dispatcher_nn, chanend_t nn_paramupdate);
 DECLARE_JOB(mlp_task, (chanend_t, chanend_t));
+DECLARE_JOB(uart_rx_task, (uart_rx_t*, chanend_t));
 
 
 #endif  // __C_WRAPPER_DECL_H__

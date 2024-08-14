@@ -26,7 +26,6 @@ set(APP_COMPILER_FLAGS
     -Wno-xcore-fptrgroup
     ${CMAKE_CURRENT_LIST_DIR}/src/config.xscope
     ${CMAKE_CURRENT_LIST_DIR}/XCORE-AI-EXPLORER.xn
-    -
 )
 set(APP_COMPILE_DEFINITIONS
     DEBUG_PRINT_ENABLE=1

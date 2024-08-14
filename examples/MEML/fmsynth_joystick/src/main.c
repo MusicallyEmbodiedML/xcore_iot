@@ -24,7 +24,7 @@ void main_tile0(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 
     PAR_JOBS (
         PJOB(gpio_server, (tile0_ctx->c_from_gpio, tile0_ctx->c_to_gpio)),
-        PJOB(uart_rx_demo, (&tile0_ctx->uart_rx_ctx)),
+        PJOB(uart_rx_task, (&tile0_ctx->uart_rx_ctx, chan_dispatcher_nn.end_a)),
         PJOB(mlp_task, (chan_dispatcher_nn.end_b, chan_nn_paramupdate.end_a)),
         PJOB(burn, ()),
         PJOB(burn, ()),

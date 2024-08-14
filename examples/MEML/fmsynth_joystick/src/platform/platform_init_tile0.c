@@ -3,6 +3,7 @@
 
 /* App headers */
 #include "platform_init.h"
+#include "app_conf.h"
 
 static void tile0_setup_mclk(void);
 static void tile0_init_i2c(void);
@@ -102,7 +103,7 @@ void uart_rx_error_callback(uart_callback_code_t callback_code, void *app_data){
 
 static void tile0_uart_init(void)
 {
-    const unsigned baud_rate = 921600;
+    const unsigned baud_rate = appconfUART_BAUD_RATE;
 
     hwtimer_t tmr_tx = hwtimer_alloc();
     uart_tx_init(
@@ -122,7 +123,7 @@ static void tile0_uart_init(void)
     hwtimer_t tmr_rx = hwtimer_alloc();
     uart_rx_init(
         &tile0_ctx->uart_rx_ctx,
-        XS1_PORT_1M, //X1D36
+        PORT_UART_RX,  //X0D00,
         baud_rate,
         8,
         UART_PARITY_NONE,

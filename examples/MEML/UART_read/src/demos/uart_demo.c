@@ -24,6 +24,7 @@ void uart_rx_demo(uart_rx_t* uart_rx_ctx)
     debug_printf("Initialised UART RX\n");
     int i = 0;
     while(1) {
+        debug_printf(".");
         uint8_t rx = uart_rx(uart_rx_ctx);
         debug_printf("Received: %u\n", rx);
         if (rx == 10) {

@@ -45,6 +45,7 @@
             -->
           </Extmem>
           <Tile Number="0" Reference="tile[0]">
+            <Port Location="XS1_PORT_1A" Name="PORT_UART_RX"/>
             <Port Location="XS1_PORT_1B" Name="PORT_SQI_CS"/>
             <Port Location="XS1_PORT_1C" Name="PORT_SQI_SCLK"/>
             <Port Location="XS1_PORT_4B" Name="PORT_SQI_SIO"/>
