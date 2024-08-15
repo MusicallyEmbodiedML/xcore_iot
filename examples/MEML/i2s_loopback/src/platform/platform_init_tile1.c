@@ -84,7 +84,7 @@ static void i2s_send(chanend_t *input_c, size_t num_out, int32_t *i2s_sample_buf
         debug_printf("triggered tx\n");
         triggered_tx = true;
     }    
-    s_chan_in_buf_word(*input_c, (uint32_t*)i2s_sample_buf, appconfFRAMES_IN_ALL_CHANS);
+    s_chan_in_buf_word(*input_c, (uint32_t*)i2s_sample_buf, MIC_ARRAY_CONFIG_MIC_COUNT);
 }
 
 static void tile1_i2s_init(void)

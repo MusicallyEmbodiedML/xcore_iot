@@ -46,12 +46,12 @@ void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
     PAR_JOBS (
         PJOB(ma_vanilla_task, (chan_decoupler.end_a)),
         PJOB(ap_stage_a, (chan_decoupler.end_b, s_chan_ab.end_a)),
-        PJOB(ap_stage_b, (s_chan_i2s.end_a, s_chan_bc.end_a, tile1_ctx->c_from_gpio)),
+        PJOB(ap_stage_b, (s_chan_ab.end_b, s_chan_bc.end_a, tile1_ctx->c_from_gpio)),
         PJOB(ap_stage_c, (s_chan_bc.end_b, s_chan_i2s.end_a, tile1_ctx->c_to_gpio)),
         PJOB(i2s_master, (&tile1_ctx->i2s_cb_group, tile1_ctx->p_i2s_dout, 1, tile1_ctx->p_i2s_din, 1, tile1_ctx->p_bclk, tile1_ctx->p_lrclk, tile1_ctx->p_mclk, tile1_ctx->bclk)),
         //PJOB(uart_rx_demo, (&tile1_ctx->uart_rx_ctx)),
         //PJOB(uart_tx_demo, (&tile1_ctx->uart_tx_ctx)),
-        PJOB(burn, ()),
+        PJOB(i2s_frame_consumer, (s_chan_i2s.end_a)),
         PJOB(burn, ()),
         PJOB(burn, ())
     );

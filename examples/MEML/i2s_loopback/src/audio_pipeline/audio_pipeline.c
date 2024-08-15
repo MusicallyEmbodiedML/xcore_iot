@@ -19,6 +19,7 @@
 
 static bool triggered_stage_b = false;
 static bool triggered_stage_c = false;
+static bool triggered_consumer = false;
 
 //#include <hwtimer.h>
 void ap_stage_a(chanend_t c_input, chanend_t c_output) {
@@ -37,7 +38,7 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
             }
         }
         // send the frame to the next stage
-        //s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
+        s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
     }
 }
 
@@ -112,6 +113,28 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
                     break;
                 }
                 debug_printf("Gain set to %d\n", gain_db);
+            }
+            continue;
+        }
+    }
+}
+
+void i2s_frame_consumer(chanend_t c_input) {
+    int32_t DWORD_ALIGNED input[appconfMIC_COUNT][appconfAUDIO_FRAME_LENGTH];
+    triggerable_disable_all();
+    TRIGGERABLE_SETUP_EVENT_VECTOR(c_input, input_frames);
+    triggerable_enable_trigger(c_input);
+    while(1)
+    {
+        TRIGGERABLE_WAIT_EVENT(input_frames);
+        {
+            input_frames:
+            {    
+                if (!triggered_consumer) {
+                    debug_printf("triggered consumer\n");
+                    triggered_consumer = true;                   
+                }
+                s_chan_in_buf_word(c_input, (uint32_t*) input, appconfFRAMES_IN_ALL_CHANS);
             }
             continue;
         }
