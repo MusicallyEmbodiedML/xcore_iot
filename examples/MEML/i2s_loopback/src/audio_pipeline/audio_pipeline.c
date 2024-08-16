@@ -151,9 +151,9 @@ void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
         }
     }    
     uint32_t time_now = get_reference_time();
-    while(get_reference_time() < (time_now + 100000)); // Wait for a millisecond
-    // send frame over the channel
-    s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
+    while(get_reference_time() < (time_now + 100000000)); // Wait for a millisecond
+    // send frames over the channel
+    s_chan_out_buf_word(c_output, (uint32_t*) output, 10);
     if (!triggered_send){
         debug_printf("triggered sending to i2s\n");
         triggered_send = true;
