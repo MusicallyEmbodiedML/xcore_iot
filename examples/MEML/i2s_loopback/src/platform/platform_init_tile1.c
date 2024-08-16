@@ -6,8 +6,8 @@
 #include "platform_init.h"
 #include <stdbool.h>
 
-static bool triggered_rx = false;
-static bool triggered_tx = false;
+int triggered_rx = 0;
+int triggered_tx = 0;
 
 static void tile1_setup_dac(void);
 static void tile1_i2s_init(void);
@@ -72,10 +72,10 @@ static void i2s_receive(tile1_ctx_t *app_data, size_t num_in, const int32_t *i2s
 {
 
     chanend_t *c_in = &app_data->c_adc_to_i2s;
-    s_chan_out_buf_word(*c_in, (uint32_t*)i2s_sample_buf, MIC_ARRAY_CONFIG_MIC_COUNT);
-    if (!triggered_rx){
-        debug_printf("triggered rx\n");
-        triggered_rx = true;
+    s_chan_out_buf_word(*c_in, (uint32_t*)i2s_sample_buf, appconfMIC_COUNT);
+    if (triggered_rx < 10){
+        debug_printf("triggered rx: %d\n", triggered_rx);
+        triggered_rx++;
     }    
 }
 
@@ -84,10 +84,10 @@ static void i2s_send(tile1_ctx_t *app_data, size_t num_out, int32_t *i2s_sample_
 {
   
     chanend_t *c_out = &app_data->c_i2s_to_dac;
-    s_chan_in_buf_word(*c_out, (uint32_t*)i2s_sample_buf, MIC_ARRAY_CONFIG_MIC_COUNT);
-    if (!triggered_tx){
-        debug_printf("triggered tx\n");
-        triggered_tx = true;
+    s_chan_in_buf_word(*c_out, (uint32_t*)i2s_sample_buf, appconfMIC_COUNT);
+    if (triggered_tx < 10){
+        debug_printf("triggered tx: %d\n", triggered_tx);
+        triggered_tx++;
     }      
 }
 

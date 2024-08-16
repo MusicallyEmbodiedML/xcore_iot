@@ -6,6 +6,9 @@
 #include <xs1.h>
 #include <string.h>
 #include <xcore/triggerable.h>
+#include <xcore/hwtimer.h>
+#include <xcore/interrupt.h>
+
 #include <stdbool.h>
 
 /* Platform headers */
@@ -45,7 +48,7 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
                     triggered_stage_a = true;
                 }        
                 // get the frame from the i2s input
-                s_chan_in_buf_word(c_input, (uint32_t*) input, MIC_ARRAY_CONFIG_MIC_COUNT);
+                s_chan_in_buf_word(c_input, (uint32_t*) input, appconfFRAMES_IN_ALL_CHANS);
 
                 // change the frame format to [channel][sample]
                 for(int ch = 0; ch < appconfMIC_COUNT; ch ++){
@@ -144,8 +147,16 @@ void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
     // Create a dummy frame to initialise i2s on first run
     for(int ch = 0; ch < appconfMIC_COUNT; ch ++){
         for(int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++){
-            output[ch][smp] = 0;
+            output[smp][ch] = 0;
         }
+    }    
+    uint32_t time_now = get_reference_time();
+    while(get_reference_time() < (time_now + 100000)); // Wait for a millisecond
+    // send frame over the channel
+    s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
+    if (!triggered_send){
+        debug_printf("triggered sending to i2s\n");
+        triggered_send = true;
     }    
 
     triggerable_disable_all();
@@ -156,16 +167,6 @@ void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
 
     while(1)
     {
-        if (new_frame) {
-            // send frame over the channel
-            s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
-            if (!triggered_send){
-                debug_printf("triggered sending to i2s\n");
-                triggered_send = true;
-            }                   
-            new_frame = false;
-        }
-
         TRIGGERABLE_WAIT_EVENT(input_frames);
         {
             input_frames:
@@ -197,7 +198,9 @@ void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
                         output[smp][ch] = input[ch][smp];
                     }
                 }
-                new_frame = true;
+                // send frame over the channel
+                s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);                
+                //new_frame = true;
             }
             continue;
         }
