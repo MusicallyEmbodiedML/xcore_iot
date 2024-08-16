@@ -17,9 +17,10 @@
 #include "app_conf.h"
 #include "audio_pipeline.h"
 
+static bool triggered_stage_a = false;
 static bool triggered_stage_b = false;
 static bool triggered_stage_c = false;
-static bool triggered_consumer = false;
+static bool triggered_send = false;
 
 //#include <hwtimer.h>
 void ap_stage_a(chanend_t c_input, chanend_t c_output) {
@@ -27,25 +28,42 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
     int32_t DWORD_ALIGNED input [appconfAUDIO_FRAME_LENGTH][appconfMIC_COUNT];
     int32_t DWORD_ALIGNED output [appconfMIC_COUNT][appconfAUDIO_FRAME_LENGTH];
 
+    triggerable_disable_all();
+    // initialise event
+    TRIGGERABLE_SETUP_EVENT_VECTOR(c_input, input_frames);
+
+    triggerable_enable_trigger(c_input);    
+
     while(1)
     {
-        // get the frame from the mic array
-        ma_frame_rx_transpose((int32_t *) input, c_input, appconfMIC_COUNT, appconfAUDIO_FRAME_LENGTH);
-        // change the frame format to [channel][sample]
-        for(int ch = 0; ch < appconfMIC_COUNT; ch ++){
-            for(int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++){
-                output[ch][smp] = input[smp][ch];
+        TRIGGERABLE_WAIT_EVENT(input_frames);
+        {
+            input_frames:
+            {
+                if (!triggered_stage_a){
+                    debug_printf("triggered stage a\n");
+                    triggered_stage_a = true;
+                }        
+                // get the frame from the i2s input
+                s_chan_in_buf_word(c_input, (uint32_t*) input, MIC_ARRAY_CONFIG_MIC_COUNT);
+
+                // change the frame format to [channel][sample]
+                for(int ch = 0; ch < appconfMIC_COUNT; ch ++){
+                    for(int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++){
+                        output[ch][smp] = input[smp][ch];
+                    }
+                }
+                // send the frame to the next stage
+                s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
             }
+            continue;
         }
-        // send the frame to the next stage
-        s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
     }
 }
 
 void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
 
     // initialise the array which will hold the data
-    int32_t DWORD_ALIGNED input [appconfAUDIO_FRAME_LENGTH][appconfMIC_COUNT];
     int32_t DWORD_ALIGNED output[appconfMIC_COUNT][appconfAUDIO_FRAME_LENGTH];
     // initialise block floating point structures for both channels
     bfp_s32_t ch0, ch1;
@@ -73,12 +91,7 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
                     triggered_stage_b = true;
                 }
                 // recieve frame over the channel
-                s_chan_in_buf_word(c_input, (uint32_t*) input, appconfFRAMES_IN_ALL_CHANS);
-                for(int ch = 0; ch < appconfMIC_COUNT; ch ++){
-                    for(int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++){
-                        output[ch][smp] = input[smp][ch];
-                    }
-                }
+                s_chan_in_buf_word(c_input, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
                 // calculate the headroom of the new frames
                 bfp_s32_headroom(&ch0);
                 bfp_s32_headroom(&ch1);
@@ -119,36 +132,21 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
     }
 }
 
-void i2s_frame_consumer(chanend_t c_input) {
-    int32_t DWORD_ALIGNED input[appconfMIC_COUNT][appconfAUDIO_FRAME_LENGTH];
-    triggerable_disable_all();
-    TRIGGERABLE_SETUP_EVENT_VECTOR(c_input, input_frames);
-    triggerable_enable_trigger(c_input);
-    while(1)
-    {
-        TRIGGERABLE_WAIT_EVENT(input_frames);
-        {
-            input_frames:
-            {    
-                if (!triggered_consumer) {
-                    debug_printf("triggered consumer\n");
-                    triggered_consumer = true;                   
-                }
-                s_chan_in_buf_word(c_input, (uint32_t*) input, appconfFRAMES_IN_ALL_CHANS);
-            }
-            continue;
-        }
-    }
-}
-
 void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
-
+    bool new_frame = true;
     int32_t DWORD_ALIGNED input[appconfMIC_COUNT][appconfAUDIO_FRAME_LENGTH];
     int32_t DWORD_ALIGNED output[appconfAUDIO_FRAME_LENGTH][appconfMIC_COUNT];
     // initialise block floating point structures for both channels
     bfp_s32_t ch0, ch1;
     bfp_s32_init(&ch0, input[0], appconfEXP, appconfAUDIO_FRAME_LENGTH, 0);
     bfp_s32_init(&ch1, input[1], appconfEXP, appconfAUDIO_FRAME_LENGTH, 0);
+    
+    // Create a dummy frame to initialise i2s on first run
+    for(int ch = 0; ch < appconfMIC_COUNT; ch ++){
+        for(int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++){
+            output[ch][smp] = 0;
+        }
+    }    
 
     triggerable_disable_all();
     // initialise event
@@ -158,6 +156,16 @@ void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
 
     while(1)
     {
+        if (new_frame) {
+            // send frame over the channel
+            s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
+            if (!triggered_send){
+                debug_printf("triggered sending to i2s\n");
+                triggered_send = true;
+            }                   
+            new_frame = false;
+        }
+
         TRIGGERABLE_WAIT_EVENT(input_frames);
         {
             input_frames:
@@ -189,8 +197,7 @@ void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
                         output[smp][ch] = input[ch][smp];
                     }
                 }
-                // send frame over the channel
-                s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
+                new_frame = true;
             }
             continue;
         }

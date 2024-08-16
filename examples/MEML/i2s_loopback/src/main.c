@@ -38,20 +38,21 @@ void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 
     streaming_channel_t s_chan_ab = s_chan_alloc();
     streaming_channel_t s_chan_bc = s_chan_alloc();
-    streaming_channel_t s_chan_i2s = s_chan_alloc();
-    channel_t chan_decoupler = chan_alloc();
+    streaming_channel_t s_chan_i2s_out = s_chan_alloc();
+    streaming_channel_t s_chan_i2s_in = s_chan_alloc();
 
-    tile1_ctx->c_i2s_to_dac = s_chan_i2s.end_b;
+    tile1_ctx->c_i2s_to_dac = s_chan_i2s_out.end_b;
+    tile1_ctx->c_adc_to_i2s = s_chan_i2s_in.end_a;
 
     PAR_JOBS (
-        PJOB(ma_vanilla_task, (chan_decoupler.end_a)),
-        PJOB(ap_stage_a, (chan_decoupler.end_b, s_chan_ab.end_a)),
+        PJOB(burn, ()),
+        PJOB(ap_stage_a, (s_chan_i2s_in.end_b, s_chan_ab.end_a)),
         PJOB(ap_stage_b, (s_chan_ab.end_b, s_chan_bc.end_a, tile1_ctx->c_from_gpio)),
-        PJOB(ap_stage_c, (s_chan_bc.end_b, s_chan_i2s.end_a, tile1_ctx->c_to_gpio)),
+        PJOB(ap_stage_c, (s_chan_bc.end_b, s_chan_i2s_out.end_a, tile1_ctx->c_to_gpio)),
         PJOB(i2s_master, (&tile1_ctx->i2s_cb_group, tile1_ctx->p_i2s_dout, 1, tile1_ctx->p_i2s_din, 1, tile1_ctx->p_bclk, tile1_ctx->p_lrclk, tile1_ctx->p_mclk, tile1_ctx->bclk)),
         //PJOB(uart_rx_demo, (&tile1_ctx->uart_rx_ctx)),
         //PJOB(uart_tx_demo, (&tile1_ctx->uart_tx_ctx)),
-        PJOB(i2s_frame_consumer, (s_chan_i2s.end_a)),
+        PJOB(burn, ()),
         PJOB(burn, ()),
         PJOB(burn, ())
     );

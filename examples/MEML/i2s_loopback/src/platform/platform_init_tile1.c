@@ -68,23 +68,27 @@ static i2s_restart_t i2s_restart_check(chanend_t *input_c)
 }
 
 I2S_CALLBACK_ATTR
-static void i2s_receive(chanend_t *input_c, size_t num_in, const int32_t *i2s_sample_buf)
+static void i2s_receive(tile1_ctx_t *app_data, size_t num_in, const int32_t *i2s_sample_buf)
 {
+
+    chanend_t *c_in = &app_data->c_adc_to_i2s;
+    s_chan_out_buf_word(*c_in, (uint32_t*)i2s_sample_buf, MIC_ARRAY_CONFIG_MIC_COUNT);
     if (!triggered_rx){
         debug_printf("triggered rx\n");
         triggered_rx = true;
-    }
-    s_chan_out_buf_word(*input_c, (uint32_t*)i2s_sample_buf, appconfFRAMES_IN_ALL_CHANS);
+    }    
 }
 
 I2S_CALLBACK_ATTR
-static void i2s_send(chanend_t *input_c, size_t num_out, int32_t *i2s_sample_buf)
+static void i2s_send(tile1_ctx_t *app_data, size_t num_out, int32_t *i2s_sample_buf)
 {
+  
+    chanend_t *c_out = &app_data->c_i2s_to_dac;
+    s_chan_in_buf_word(*c_out, (uint32_t*)i2s_sample_buf, MIC_ARRAY_CONFIG_MIC_COUNT);
     if (!triggered_tx){
         debug_printf("triggered tx\n");
         triggered_tx = true;
-    }    
-    s_chan_in_buf_word(*input_c, (uint32_t*)i2s_sample_buf, MIC_ARRAY_CONFIG_MIC_COUNT);
+    }      
 }
 
 static void tile1_i2s_init(void)
@@ -93,7 +97,8 @@ static void tile1_i2s_init(void)
     tile1_ctx->i2s_cb_group.restart_check = (i2s_restart_check_t) i2s_restart_check;
     tile1_ctx->i2s_cb_group.receive = (i2s_receive_t) i2s_receive;
     tile1_ctx->i2s_cb_group.send = (i2s_send_t) i2s_send;
-    tile1_ctx->i2s_cb_group.app_data = &tile1_ctx->c_i2s_to_dac;
+    //tile1_ctx->i2s_cb_group.app_data = &tile1_ctx->c_i2s_to_dac;
+    tile1_ctx->i2s_cb_group.app_data = tile1_ctx;
 
     tile1_ctx->p_i2s_dout[0] = PORT_I2S_DAC_DATA;
     tile1_ctx->p_i2s_din[0] = PORT_I2S_ADC_DATA;

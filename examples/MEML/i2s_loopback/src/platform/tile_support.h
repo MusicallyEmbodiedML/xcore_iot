@@ -37,6 +37,7 @@ struct tile1_struct {
     port_t p_mclk;
     xclock_t bclk;
     chanend_t c_i2s_to_dac;
+    chanend_t c_adc_to_i2s;
 
     uart_rx_t uart_rx_ctx;
     uart_tx_t uart_tx_ctx;
