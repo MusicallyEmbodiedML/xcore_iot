@@ -115,7 +115,7 @@ void MEML_UART::_PrintBufferState()
     } else {
         buffer_[buffer_idx_-1] = '\0';
     }
-    debug_printf("Buffer: %s\n", buffer_);
+    debug_printf("UART- Buffer: %s\n", buffer_);
 }
 
 
@@ -141,14 +141,16 @@ void MEML_UART::_Split(char *s, const char *delim)
 
 bool MEML_UART::Parse(std::vector<std::string> buffer, ts_joystick_read *read)
 {
+    static constexpr float u16_float_scaling = 1.f/65535.f;
+
     if (buffer.size() != 3) {
-        debug_printf("Wrong buffer for joystick parse");
+        debug_printf("UART- Wrong buffer for joystick parse!\n");
         return false;
     }
 
-    read->potX = std::stof(buffer[1]);
-    read->potY = std::stof(buffer[2]);
-    read->potRotate = std::stof(buffer[0]);
+    read->potX = std::stof(buffer[1]) * u16_float_scaling;
+    read->potY = std::stof(buffer[2]) * u16_float_scaling;
+    read->potRotate = std::stof(buffer[0]) * u16_float_scaling;
 
     return true;
 }
@@ -161,7 +163,7 @@ void uart_rx_task(uart_rx_t* uart_rx_ctx, chanend_t uart_dispatcher)
 {
     auto read = std::make_unique<ts_joystick_read>();
     auto uart_if = std::make_unique<MEML_UART>(uart_rx_ctx);
-    debug_printf("Initialised UART RX\n");
+    debug_printf("UART- Initialised UART RX\n");
 
     while(1) {
         std::vector<std::string> message;
@@ -176,7 +178,7 @@ void uart_rx_task(uart_rx_t* uart_rx_ctx, chanend_t uart_dispatcher)
             if (uart_if->Parse(message, read.get())) {
 
                 // Send message down correct UART channel
-                debug_printf("Sending UART message down via channel.\n");
+                debug_printf("UART- Sending UART message down via channel.\n");
                 chan_out_buf_byte(
                     uart_dispatcher,
                     reinterpret_cast<unsigned char *>(read.get()),
