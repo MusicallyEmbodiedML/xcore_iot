@@ -23,7 +23,11 @@ extern "C" {
 #include <vector>
 #include <memory>
 #include <string>
+#include <cstring>
 
+///
+// C++ HELPER CLASSES
+///
 
 class MEML_UART {
  public:
@@ -39,8 +43,12 @@ class MEML_UART {
     uart_rx_t *uart_rx_ctx_;
     std::array<unsigned char, kBuffer_size> buffer_;
     unsigned int buffer_idx_;
+    std::vector< std::string > token_buffer_;
+    bool buffer_available_;
+    
 
     void _PrintBufferState();
+    void _Split(char *s, const char *delim);
 };
 
 
@@ -58,21 +66,16 @@ void MEML_UART::Process()
     if (rx == '\n') {
         // Terminated line of parameters
         _PrintBufferState();
+        
         // Tokenise and make package
-        /*
-        char * p;
-        p = strtok(buffer, ",");
-        while (p != NULL) {
-            int coord = atoi(p);
-            debug_printf("Coordinate: %u\n", coord);
-            p = strtok(NULL, ",");
-        }
-        */
+        _Split(reinterpret_cast<char*>(buffer_.data()), ",");
+
         // Reset
         Reset();
    } else {
+        buffer_available_ = 0;
         // Keep populating buffers
-        if (buffer_idx_ >= kBuffer_size) {
+        if (buffer_idx_ >= kBuffer_size-1) {
             // Wrap around
             buffer_idx_ = 0;
         }
@@ -90,7 +93,15 @@ void MEML_UART::Reset()
 
 bool MEML_UART::GetMessage(std::vector<std::string> &message)
 {
-    return false;
+    if (buffer_available_) {
+        // This flag is NOT thread-safe - upgrade to atomic and
+        // std::binary_semaphore if required
+
+        for (auto t : token_buffer_) {
+            message.push_back(t);
+        }
+    }
+    return buffer_available_;
 }
 
 
@@ -98,26 +109,57 @@ void MEML_UART::_PrintBufferState()
 {
     if (buffer_idx_ < kBuffer_size-1) {
         buffer_[buffer_idx_] = '\0';
+    } else {
+        buffer_[buffer_idx_-1] = '\0';
     }
     debug_printf("Buffer: %s\n", buffer_);
 }
 
 
+void MEML_UART::_Split(char *s, const char *delim)
+{
+    token_buffer_.clear();
+
+    char *pch = std::strtok(s, delim);
+    unsigned int pch_counter = 0;
+
+    while (pch != nullptr)
+    {
+        token_buffer_.push_back(std::string(pch));
+        pch = std::strtok(nullptr, delim);
+        pch_counter++;
+    }
+
+    // If something is found, signal buffer available
+    if (pch_counter > 0) {
+        buffer_available_ = true;
+    }
+}
+
+///
+// C WRAPPER TASK
+///
+
 void uart_rx_task(uart_rx_t* uart_rx_ctx, chanend_t uart_dispatcher)
 {
     auto uart_if = std::make_unique<MEML_UART>(uart_rx_ctx);
-    std::vector<std::string> message;
     debug_printf("Initialised UART RX\n");
 
     while(1) {
+        std::vector<std::string> message;
         uart_if->Process();
         if (uart_if->GetMessage(message)) {
-            debug_printf("Sending UART message down via channel.\n");
-            chan_out_buf_byte(
-                uart_dispatcher,
-                reinterpret_cast<unsigned char *>(message.data()),
-                message.size() * sizeof(std::string)
-            );
+            for (auto s : message) {
+                debug_printf(s.c_str());
+                debug_printf(" ");
+            }
+            debug_printf("\n");
+            //debug_printf("Sending UART message down via channel.\n");
+            //chan_out_buf_byte(
+            //    uart_dispatcher,
+            //    reinterpret_cast<unsigned char *>(message.data()),
+            //    message.size() * sizeof(std::string)
+            //);
         }
     }
 }
