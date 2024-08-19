@@ -6,22 +6,12 @@
 extern "C" {
 #include <xcore/triggerable.h>
 #include <xcore/channel.h>
+#include "xcore_utils.h"
 }
 // Local includes
-#include "Data.h"
+#include "chans_and_data.h"
 #include "MLP.h"
 #include "FMSynth.hpp"
-
-
-/**
- * @brief Inserts
- * 
- */
-typedef struct {
-    num_t potX;
-    num_t potY;
-    num_t potRotate;
-} ts_joystick_read;
 
 
 void mlp_task(chanend_t dispatcher_nn, chanend_t nn_paramupdate)
@@ -63,6 +53,7 @@ void mlp_task(chanend_t dispatcher_nn, chanend_t nn_paramupdate)
             reinterpret_cast<uint8_t *>(joystick_read.get()),
             sizeof(ts_joystick_read)
         );
+        debug_printf("Received joystick read in NN task.\n");
 
         // Instantiate data in/out
         std::vector<num_t> input{

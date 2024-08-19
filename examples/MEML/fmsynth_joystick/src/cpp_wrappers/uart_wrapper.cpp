@@ -25,6 +25,8 @@ extern "C" {
 #include <string>
 #include <cstring>
 
+#include "chans_and_data.h"
+
 ///
 // C++ HELPER CLASSES
 ///
@@ -36,6 +38,7 @@ class MEML_UART {
     void Process();
     void Reset();
     bool GetMessage(std::vector<std::string> &message);
+    bool Parse(std::vector<std::string> buffer, ts_joystick_read *read);
 
  protected:
 
@@ -136,30 +139,50 @@ void MEML_UART::_Split(char *s, const char *delim)
     }
 }
 
+bool MEML_UART::Parse(std::vector<std::string> buffer, ts_joystick_read *read)
+{
+    if (buffer.size() != 3) {
+        debug_printf("Wrong buffer for joystick parse");
+        return false;
+    }
+
+    read->potX = std::stof(buffer[1]);
+    read->potY = std::stof(buffer[2]);
+    read->potRotate = std::stof(buffer[0]);
+
+    return true;
+}
+
 ///
 // C WRAPPER TASK
 ///
 
 void uart_rx_task(uart_rx_t* uart_rx_ctx, chanend_t uart_dispatcher)
 {
+    auto read = std::make_unique<ts_joystick_read>();
     auto uart_if = std::make_unique<MEML_UART>(uart_rx_ctx);
     debug_printf("Initialised UART RX\n");
 
     while(1) {
         std::vector<std::string> message;
+
+        // Process characters from the UART interface
         uart_if->Process();
+
+        // ...until a message is received in full
         if (uart_if->GetMessage(message)) {
-            for (auto s : message) {
-                debug_printf(s.c_str());
-                debug_printf(" ");
+            
+            // Parse message
+            if (uart_if->Parse(message, read.get())) {
+
+                // Send message down correct UART channel
+                debug_printf("Sending UART message down via channel.\n");
+                chan_out_buf_byte(
+                    uart_dispatcher,
+                    reinterpret_cast<unsigned char *>(read.get()),
+                    sizeof(ts_joystick_read)
+                );
             }
-            debug_printf("\n");
-            //debug_printf("Sending UART message down via channel.\n");
-            //chan_out_buf_byte(
-            //    uart_dispatcher,
-            //    reinterpret_cast<unsigned char *>(message.data()),
-            //    message.size() * sizeof(std::string)
-            //);
         }
     }
 }
