@@ -10,15 +10,11 @@
 #include "c_wrapper_decl.h"
 
 
-void main_tile0(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
+void main_tile0(chanend_t c_gpio, chanend_t c_nn_paramupdate)
 {
-    (void)c0;
-    (void)c2;
-    (void)c3;
-
     channel_t chan_dispatcher_nn = chan_alloc();
 
-    platform_init_tile_0(c1, c2);
+    platform_init_tile_0(c_gpio, c_nn_paramupdate);
 
     PAR_JOBS (
         PJOB(gpio_server, (tile0_ctx->c_from_gpio, tile0_ctx->c_to_gpio)),
@@ -32,13 +28,9 @@ void main_tile0(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
     );
 }
 
-void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
+void main_tile1(chanend_t c_gpio, chanend_t c_nn_paramupdate)
 {
-    (void)c1;
-    (void)c2;
-    (void)c3;
-
-    platform_init_tile_1(c0, c2);
+    platform_init_tile_1(c_gpio, c_nn_paramupdate);
 
     streaming_channel_t s_chan_ab = s_chan_alloc();
     streaming_channel_t s_chan_bc = s_chan_alloc();

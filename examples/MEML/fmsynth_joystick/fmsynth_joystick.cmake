@@ -4,6 +4,7 @@
 file(GLOB_RECURSE APP_SOURCES
      ${CMAKE_CURRENT_LIST_DIR}/src/*.c
      ${CMAKE_CURRENT_LIST_DIR}/src/*.cpp
+     ${CMAKE_CURRENT_LIST_DIR}/src/*.xc
 )
 set(APP_INCLUDES
     ${CMAKE_CURRENT_LIST_DIR}/src
@@ -12,6 +13,7 @@ set(APP_INCLUDES
     ${CMAKE_CURRENT_LIST_DIR}/src/misc
     ${CMAKE_CURRENT_LIST_DIR}/src/demos
     ${CMAKE_CURRENT_LIST_DIR}/src/cpp_wrappers
+    ${CMAKE_CURRENT_LIST_DIR}/src/multitile
 )
 
 #**********************
@@ -61,7 +63,7 @@ target_include_directories(${MEML_APP_NAME} PUBLIC ${APP_INCLUDES})
 target_compile_definitions(${MEML_APP_NAME} PRIVATE ${APP_COMPILE_DEFINITIONS})
 target_compile_options(${MEML_APP_NAME} PRIVATE ${APP_COMPILER_FLAGS})
 target_link_libraries(${MEML_APP_NAME} PUBLIC
-                      core::general io::all framework_core_multitile_support
+                      core::general io::all
                       meml_lib
 )
 #target_compile_features(${MEML_APP_NAME} PUBLIC cxx_std_14)
