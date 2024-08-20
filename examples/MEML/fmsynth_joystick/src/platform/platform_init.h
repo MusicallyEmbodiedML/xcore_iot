@@ -33,7 +33,7 @@
 // #define UNUSED_CLKBLK   XS1_CLKBLK_4
 // #define UNUSED_CLKBLK   XS1_CLKBLK_5
 
-void platform_init_tile_0(chanend_t c_other_tile);
-void platform_init_tile_1(chanend_t c_other_tile);
+void platform_init_tile_0(chanend_t c_other_tile, chanend_t c_nn_paramupdate);
+void platform_init_tile_1(chanend_t c_other_tile, chanend_t c_nn_paramupdate);
 
 #endif /* PLATFORM_INIT_H_ */

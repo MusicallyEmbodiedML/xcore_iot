@@ -12,12 +12,14 @@ static void tile0_init_spi_device(spi_master_t *spi_ctx);
 static void tile0_init_flash(void);
 static void tile0_uart_init(void);
 
-void platform_init_tile_0(chanend_t c_other_tile)
+void platform_init_tile_0(chanend_t c_other_tile, chanend_t c_nn_paramupdate)
 {
     memset(tile0_ctx, 0, sizeof(tile0_ctx_t));
 
     tile0_ctx->c_from_gpio = soc_channel_establish(c_other_tile, soc_channel_output);
     tile0_ctx->c_to_gpio = soc_channel_establish(c_other_tile, soc_channel_input);
+
+    tile0_ctx->c_nn_paramupdate = soc_channel_establish(c_nn_paramupdate, soc_channel_inout);
 
     tile0_setup_mclk();
 

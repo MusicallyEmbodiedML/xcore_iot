@@ -23,7 +23,7 @@ set(APP_COMPILER_FLAGS
     -report
     -fxscope
     -mcmodel=large
-    -Wno-xcore-fptrgroup
+    -Wall
     ${CMAKE_CURRENT_LIST_DIR}/src/config.xscope
     ${CMAKE_CURRENT_LIST_DIR}/XCORE-AI-EXPLORER.xn
 )

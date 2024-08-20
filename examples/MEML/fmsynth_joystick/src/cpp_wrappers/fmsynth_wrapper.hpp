@@ -3,15 +3,15 @@
 
 extern "C" {
 
+#include <xcore/chanend.h>
 #include "app_conf.h"
 
-// #if SINE_TEST
-    #include <stdint.h>
+#include <stdint.h>
 
-    void fmsynth_init(float sample_rate);
-    int32_t fmsynth_generate(void);
+void fmsynth_init(float sample_rate);
+int32_t fmsynth_generate(void);
 
-// #endif  // SINE_TEST
+void fmsynth_paramupdate_task(chanend_t nn_paramupdate);
 
 }
 

@@ -47,14 +47,14 @@ void mlp_task(chanend_t dispatcher_nn, chanend_t nn_paramupdate)
 
     // Events
     while (true) {
-        debug_printf("NN- Waiting for data...\n");
+        //debug_printf("NN- Waiting for data...\n");
         // Blocking acquisition of pot data from dispatcher_nn
         chan_in_buf_byte(
             dispatcher_nn,
             reinterpret_cast<uint8_t *>(joystick_read.get()),
             sizeof(ts_joystick_read)
         );
-        debug_printf("NN- Received joystick read in NN task.\n");
+        //debug_printf("NN- Received joystick read in NN task.\n");
 
         // Instantiate data in/out
         std::vector<num_t> input{
@@ -63,17 +63,19 @@ void mlp_task(chanend_t dispatcher_nn, chanend_t nn_paramupdate)
             joystick_read->potRotate,
             1.f  // bias
         };
-        std::vector<num_t> output(sizeof(kN_synthparams));
+        std::vector<num_t> output(kN_synthparams);
         // Run model
         mlp->GetOutput(input, &output);
 
         // Send result
-        //chan_out_buf_byte(
-        //    nn_paramupdate,
-        //    reinterpret_cast<uint8_t *>(output.data()),
-        //    sizeof(num_t) * output.size()
-        //);
+    #if 1
+        chan_out_buf_byte(
+            nn_paramupdate,
+            reinterpret_cast<uint8_t *>(output.data()),
+            sizeof(num_t) * kN_synthparams
+        );
+    #endif
 
-        debug_printf("NN- Task finished.\n");
+        //debug_printf("NN- Task finished.\n");
     }
 }

@@ -2,13 +2,20 @@
 
 #include "fmsynth_wrapper.hpp"
 
-
+#include "chans_and_data.h"
 #include "FMSynth.hpp"
 #if TEST_WITH_SINE
 #include "SineTone.hpp"
 #endif
 #include <cmath>
 #include <new>
+
+extern "C" {
+// XMOS includes
+#include <xcore/channel.h>
+#include <xscope.h>
+#include "xcore_utils.h"
+}  // extern "C"
 
 #if TEST_WITH_SINE
 static SineTone *sinetone = nullptr;
@@ -43,5 +50,28 @@ int32_t fmsynth_generate(void) {
     return y;
 }
 
+void fmsynth_paramupdate_task(chanend_t nn_paramupdate)
+{
+    std::vector<num_t> params(kN_synthparams);
+
+    while (true) {
+#if 1
+        chan_in_buf_byte(
+            nn_paramupdate,
+            reinterpret_cast<unsigned char *>(params.data()),
+            sizeof(num_t) * kN_synthparams
+        );
+
+        debug_printf("FMSynth- Something is received.\n");
+
+        xscope_float(3, params[0]);
+        xscope_float(4, params[kN_synthparams-1]);
+
+        fmsyn->mapParameters(params);
+
+        debug_printf("FMSynth- Params are mapped.\n");
+#endif
+    }
+}
 
 // #endif  // SINE_TEST

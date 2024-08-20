@@ -19,6 +19,8 @@ typedef struct tile0_struct tile0_ctx_t;
 struct tile0_struct {
     chanend_t c_from_gpio;
     chanend_t c_to_gpio;
+    chanend_t c_nn_paramupdate;
+
     spi_master_device_t spi_device_ctx;
     spi_master_t spi_ctx;
     i2c_master_t i2c_ctx;
@@ -31,6 +33,7 @@ typedef struct tile1_struct tile1_ctx_t;
 struct tile1_struct {
     chanend_t c_from_gpio;
     chanend_t c_to_gpio;
+    chanend_t c_nn_paramupdate;
 
     i2s_callback_group_t i2s_cb_group;
     port_t p_i2s_dout[1];

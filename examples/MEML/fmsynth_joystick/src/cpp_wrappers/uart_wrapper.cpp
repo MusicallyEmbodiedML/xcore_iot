@@ -9,6 +9,7 @@ extern "C" {
 #include <platform.h>
 #include <xs1.h>
 #include <xcore/channel.h>
+#include <xscope.h>
 
 /* Platform headers */
 #include "soc.h"
@@ -16,7 +17,7 @@ extern "C" {
 
 /* App headers */
 #include "app_conf.h"
-}
+}  // extern "C"
 
 // STL and other C++ includes
 #include <array>
@@ -24,8 +25,42 @@ extern "C" {
 #include <memory>
 #include <string>
 #include <cstring>
+#include <cmath>
 
 #include "chans_and_data.h"
+
+
+/****** Alternate float_to_char */
+
+#define CHAR_BUFF_SIZE 10
+
+static char * _float_to_char(float x, char *p) {
+    char *s = p + CHAR_BUFF_SIZE; // go to end of buffer
+    uint16_t decimals;  // variable to store the decimals
+    int units;  // variable to store the units (part to left of decimal place)
+    if (x < 0) { // take care of negative numbers
+        decimals = (int)(x * -100) % 1000; // make 1000 for 3 decimals etc.
+        units = (int)(-1 * x);
+    } else { // positive numbers
+        decimals = (int)(x * 100) % 100;
+        units = (int)x;
+    }
+
+    *--s = (decimals % 10) + '0';
+    decimals /= 10; // repeat for as many decimal places as you need
+    *--s = (decimals % 10) + '0';
+    *--s = '.';
+
+    while (units > 0) {
+        *--s = (units % 10) + '0';
+        units /= 10;
+    }
+    if (x < 0) *--s = '-'; // unary minus sign for negative numbers
+    return s;
+}
+
+/****************************** */
+
 
 ///
 // C++ HELPER CLASSES
@@ -152,6 +187,31 @@ bool MEML_UART::Parse(std::vector<std::string> buffer, ts_joystick_read *read)
     read->potY = std::stof(buffer[2]) * u16_float_scaling;
     read->potRotate = std::stof(buffer[0]) * u16_float_scaling;
 
+#if 0
+    if (std::isinf(read->potX)) {
+        debug_printf("UART- Inf!\n");
+    }
+    else
+    {
+        static char potX_s[CHAR_BUFF_SIZE] = { 0 };
+        static char potY_s[CHAR_BUFF_SIZE] = { 0 };
+        static char potRotate_s[CHAR_BUFF_SIZE] = { 0 };
+
+        _float_to_char(read->potX, potX_s);
+        _float_to_char(read->potY, potY_s);
+        _float_to_char(read->potRotate, potRotate_s);
+        
+        debug_printf("UART- Message values: ");
+        debug_printf(potX_s); debug_printf(", ");
+        debug_printf(potY_s); debug_printf(", ");
+        debug_printf(potRotate_s); debug_printf("\n");
+    }
+#else
+    xscope_float(0, read->potX);
+    xscope_float(1, read->potY);
+    xscope_float(2, read->potRotate);
+#endif
+
     return true;
 }
 
@@ -178,7 +238,7 @@ void uart_rx_task(uart_rx_t* uart_rx_ctx, chanend_t uart_dispatcher)
             if (uart_if->Parse(message, read.get())) {
 
                 // Send message down correct UART channel
-                debug_printf("UART- Sending UART message down via channel.\n");
+                //debug_printf("UART- Sending UART message down via channel.\n");
                 chan_out_buf_byte(
                     uart_dispatcher,
                     reinterpret_cast<unsigned char *>(read.get()),

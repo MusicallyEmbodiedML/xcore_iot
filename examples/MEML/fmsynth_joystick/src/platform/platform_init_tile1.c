@@ -9,12 +9,14 @@ static void tile1_setup_dac(void);
 static void tile1_i2s_init(void);
 static void tile1_mic_init(void);
 
-void platform_init_tile_1(chanend_t c_other_tile)
+void platform_init_tile_1(chanend_t c_other_tile, chanend_t c_nn_paramupdate)
 {
     memset(tile1_ctx, 0, sizeof(tile1_ctx_t));
 
     tile1_ctx->c_from_gpio = soc_channel_establish(c_other_tile, soc_channel_input);
     tile1_ctx->c_to_gpio = soc_channel_establish(c_other_tile, soc_channel_output);
+
+    tile1_ctx->c_nn_paramupdate = soc_channel_establish(c_nn_paramupdate, soc_channel_inout);
 
     /* Reset CODEC */
     tile1_setup_dac();
