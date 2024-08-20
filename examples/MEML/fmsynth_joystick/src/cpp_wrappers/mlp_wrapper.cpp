@@ -28,7 +28,7 @@ void mlp_task(chanend_t dispatcher_nn, chanend_t nn_paramupdate)
         kN_synthparams
     };
     const std::vector<std::string> layers_activfuncs = {
-        "relu", "relu", "relu", "tanh"
+        "relu", "relu", "relu", "sigmoid"
     };
     const bool use_constant_weight_init = false;
     const num_t constant_weight_init = 0;

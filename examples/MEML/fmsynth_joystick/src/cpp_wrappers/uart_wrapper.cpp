@@ -26,6 +26,7 @@ extern "C" {
 #include <string>
 #include <cstring>
 #include <cmath>
+#include <cstdlib>
 
 #include "chans_and_data.h"
 
@@ -183,9 +184,9 @@ bool MEML_UART::Parse(std::vector<std::string> buffer, ts_joystick_read *read)
         return false;
     }
 
-    read->potX = std::stof(buffer[1]) * u16_float_scaling;
-    read->potY = std::stof(buffer[2]) * u16_float_scaling;
-    read->potRotate = std::stof(buffer[0]) * u16_float_scaling;
+    read->potX = std::atof(buffer[1].c_str()) * u16_float_scaling;
+    read->potY = std::atof(buffer[2].c_str()) * u16_float_scaling;
+    read->potRotate = std::atof(buffer[0].c_str()) * u16_float_scaling;
 
 #if 0
     if (std::isinf(read->potX)) {

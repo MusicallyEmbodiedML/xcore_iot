@@ -67,9 +67,10 @@ void fmsynth_paramupdate_task(chanend_t nn_paramupdate)
         xscope_float(3, params[0]);
         xscope_float(4, params[kN_synthparams-1]);
 
-        fmsyn->mapParameters(params);
-
-        debug_printf("FMSynth- Params are mapped.\n");
+        if (fmsyn != nullptr) {
+            fmsyn->mapParameters(params);
+            debug_printf("FMSynth- Params are mapped.\n");
+        }
 #endif
     }
 }

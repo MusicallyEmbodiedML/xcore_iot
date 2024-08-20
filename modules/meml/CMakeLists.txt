@@ -32,6 +32,8 @@ target_compile_definitions(meml_lib
 target_compile_options(meml_lib
     PRIVATE
         $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
+        -O0
+        -Wall
 )
 
 message("")
