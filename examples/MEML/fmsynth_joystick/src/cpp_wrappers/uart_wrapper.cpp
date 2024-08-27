@@ -33,6 +33,8 @@ extern "C" {
 
 /****** Alternate float_to_char */
 
+#if 0
+
 #define CHAR_BUFF_SIZE 10
 
 static char * _float_to_char(float x, char *p) {
@@ -59,6 +61,8 @@ static char * _float_to_char(float x, char *p) {
     if (x < 0) *--s = '-'; // unary minus sign for negative numbers
     return s;
 }
+
+#endif
 
 /****************************** */
 
@@ -101,6 +105,11 @@ MEML_UART::MEML_UART(uart_rx_t *uart_rx_ctx) :
 void MEML_UART::Process()
 {
     unsigned char rx = uart_rx(uart_rx_ctx_);
+    if (!rx) {
+        debug_printf("\\0");
+    } else {
+        debug_printf("%c", rx);
+    }
 
     if (rx == '\n') {
         // Terminated line of parameters
@@ -146,6 +155,7 @@ bool MEML_UART::GetMessage(std::vector<std::string> &message)
 
 void MEML_UART::_PrintBufferState()
 {
+    // Terminate buffer with \0!!!
     if (buffer_idx_ < kBuffer_size-1) {
         buffer_[buffer_idx_] = '\0';
     } else {
