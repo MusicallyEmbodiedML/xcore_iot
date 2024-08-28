@@ -22,7 +22,7 @@ void mlp_task(chanend_t dispatcher_nn, chanend_t nn_paramupdate)
     auto joystick_read = std::make_unique<ts_joystick_read>();
 
     // NN init
-    const std::vector<unsigned int> layers_nodes = {
+    const std::vector<size_t> layers_nodes = {
         sizeof(ts_joystick_read)/sizeof(num_t) + kBias,
         10, 10, 14,
         kN_synthparams

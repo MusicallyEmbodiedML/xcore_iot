@@ -21,7 +21,7 @@ extern "C" {
 static SineTone *sinetone = nullptr;
 static char sinetone_mem_[sizeof(SineTone)];
 #else
-static FMSynth *fmsyn = nullptr;
+FMSynth *fmsyn = nullptr;
 static char fmsyn_mem_[sizeof(FMSynth)];
 #endif
 

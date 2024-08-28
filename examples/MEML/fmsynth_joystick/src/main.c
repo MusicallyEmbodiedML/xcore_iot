@@ -19,12 +19,7 @@ void main_tile0(chanend_t c_gpio, chanend_t c_nn_paramupdate)
     PAR_JOBS (
         PJOB(gpio_server, (tile0_ctx->c_from_gpio, tile0_ctx->c_to_gpio)),
         PJOB(uart_rx_task, (&tile0_ctx->uart_rx_ctx, chan_dispatcher_nn.end_a)),
-        PJOB(mlp_task, (chan_dispatcher_nn.end_b, tile0_ctx->c_nn_paramupdate)),
-        PJOB(burn, ()),
-        PJOB(burn, ()),
-        PJOB(burn, ()),
-        PJOB(burn, ()),
-        PJOB(burn, ())
+        PJOB(mlp_task, (chan_dispatcher_nn.end_b, tile0_ctx->c_nn_paramupdate))
     );
 }
 
@@ -45,8 +40,6 @@ void main_tile1(chanend_t c_gpio, chanend_t c_nn_paramupdate)
         PJOB(ap_stage_b, (s_chan_ab.end_b, s_chan_bc.end_a, tile1_ctx->c_from_gpio)),
         PJOB(ap_stage_c, (s_chan_bc.end_b, s_chan_output.end_a, tile1_ctx->c_to_gpio)),
         PJOB(i2s_master, (&tile1_ctx->i2s_cb_group, tile1_ctx->p_i2s_dout, 1, NULL, 0, tile1_ctx->p_bclk, tile1_ctx->p_lrclk, tile1_ctx->p_mclk, tile1_ctx->bclk)),
-        PJOB(fmsynth_paramupdate_task, (tile1_ctx->c_nn_paramupdate)),
-        PJOB(burn, ()),
-        PJOB(burn, ())
+        PJOB(fmsynth_paramupdate_task, (tile1_ctx->c_nn_paramupdate))
     );
 }
