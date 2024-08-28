@@ -16,9 +16,11 @@ void main_tile0(chanend_t c_gpio, chanend_t c_nn_paramupdate)
 
     platform_init_tile_0(c_gpio, c_nn_paramupdate);
 
+    interface_init(chan_dispatcher_nn.end_a, tile0_ctx->c_nn_paramupdate);
+
     PAR_JOBS (
         PJOB(gpio_server, (tile0_ctx->c_from_gpio, tile0_ctx->c_to_gpio)),
-        PJOB(uart_rx_task, (&tile0_ctx->uart_rx_ctx, chan_dispatcher_nn.end_a)),
+        PJOB(uart_rx_task, (&tile0_ctx->uart_rx_ctx)),
         PJOB(mlp_task, (chan_dispatcher_nn.end_b, tile0_ctx->c_nn_paramupdate))
     );
 }

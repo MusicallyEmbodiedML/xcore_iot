@@ -29,7 +29,7 @@ extern "C" {
 #include <cstdlib>
 
 #include "chans_and_data.h"
-
+#include "interface_wrapper.hpp"
 
 /****** Alternate float_to_char */
 
@@ -78,7 +78,7 @@ class MEML_UART {
     void Process();
     void Reset();
     bool GetMessage(std::vector<std::string> &message);
-    bool Parse(std::vector<std::string> buffer, ts_joystick_read *read);
+    bool ParseAndSend(std::vector<std::string> &buffer);
 
  protected:
 
@@ -88,16 +88,20 @@ class MEML_UART {
     unsigned int buffer_idx_;
     std::vector< std::string > token_buffer_;
     bool buffer_available_;
+    bool button_states_[button_nButtons];
     
 
     void _PrintBufferState();
     void _Split(char *s, const char *delim);
+    bool _ParseJoystick(std::vector<std::string> &buffer);
+    bool _ParseButton(std::vector<std::string> &buffer);
 };
 
 
 MEML_UART::MEML_UART(uart_rx_t *uart_rx_ctx) :
         uart_rx_ctx_(uart_rx_ctx),
-        buffer_idx_(0)
+        buffer_idx_(0),
+        button_states_({ false })
 {
 }
 
@@ -185,43 +189,89 @@ void MEML_UART::_Split(char *s, const char *delim)
     }
 }
 
-bool MEML_UART::Parse(std::vector<std::string> buffer, ts_joystick_read *read)
+bool MEML_UART::_ParseJoystick(std::vector<std::string> &buffer)
 {
     static constexpr float u16_float_scaling = 1.f/65535.f;
 
-    if (buffer.size() != 3) {
+    if (buffer.size() != 2) {
         debug_printf("UART- Wrong buffer for joystick parse!\n");
         return false;
     }
 
-    read->potX = std::atof(buffer[1].c_str()) * u16_float_scaling;
-    read->potY = std::atof(buffer[2].c_str()) * u16_float_scaling;
-    read->potRotate = std::atof(buffer[0].c_str()) * u16_float_scaling;
-
-#if 0
-    if (std::isinf(read->potX)) {
-        debug_printf("UART- Inf!\n");
+    unsigned int pot_index = std::atoi(buffer[0]);
+    if (pot_index >= joystick_nPots) {
+        debug_printf("UART- Wrong joystick index %s!\n", buffer[0]);
+        return false;
     }
-    else
-    {
-        static char potX_s[CHAR_BUFF_SIZE] = { 0 };
-        static char potY_s[CHAR_BUFF_SIZE] = { 0 };
-        static char potRotate_s[CHAR_BUFF_SIZE] = { 0 };
 
-        _float_to_char(read->potX, potX_s);
-        _float_to_char(read->potY, potY_s);
-        _float_to_char(read->potRotate, potRotate_s);
-        
-        debug_printf("UART- Message values: ");
-        debug_printf(potX_s); debug_printf(", ");
-        debug_printf(potY_s); debug_printf(", ");
-        debug_printf(potRotate_s); debug_printf("\n");
+    num_t pot_value = std::atof(buffer[1]) * u16_float_scaling;
+    if (pot_value > 1.00001f || pot_value < -0.00001f) {
+        debug_printf("UART- Wrong joystick value %s!\n", buffer[1]);
+        return false;
     }
-#else
-    xscope_float(0, read->potX);
-    xscope_float(1, read->potY);
-    xscope_float(2, read->potRotate);
-#endif
+
+    meml_interface->SetPot(pot_index, pot_value);
+
+    xscope_float(pot_index, pot_value);
+
+    return true;
+}
+
+bool MEML_UART::_ParseButton(std::vector<std::string> &buffer)
+{
+    if (buffer.size() != 2) {
+        debug_printf("UART- Wrong buffer for button parse!\n");
+        return false;
+    }
+
+    unsigned int btn_index = std::atoi(buffer[0]);
+    if (btn_index >= button_nButtons) {
+        debug_printf("UART- Wrong buttom index %s!\n", buffer[0]);
+        return false;
+    }
+
+    unsigned int btn_value = std::atoi(buffer[1]);
+    if (btn_value != 0 && btn_value != 1) {
+        debug_printf("UART- Wrong button value %s!\n", buffer[1]);
+        return false;
+    }
+    bool btn_value_bool = !static_cast<bool>(btn_value);
+
+    if (btn_index == 0) { // Toggle
+        meml_interface->SetToggleButton(btn_index, btn_value);
+    } else {  // Buttons
+        if (btn_value && !button_states[btn_index]) {
+            // Pressed
+            meml_interface->SetToggleButton(btn_index, btn_value);
+        }
+        button_states[btn_index] = btn_value;
+    }
+
+    return true;
+}
+
+bool MEML_UART::ParseAndSend(std::vector<std::string> &buffer)
+{
+    if (!buffer.size()) {
+        debug_printf("UART- buffer empty\n");
+        return false;
+    }
+    std::string first_token = buffer[0];
+    std::vector<std::string> payload(buffer.begin()+1, buffer.end());
+
+    const char switch_token = first_token.back();
+    switch (switch_token) {
+        case 'j': {
+            _ParseJoystick(payload);
+        } break;
+        case 'b': {
+            _ParseButton(payload);
+        } break;
+        default: {
+            debug_printf("UART- message type %c unknown", switch_token);
+            return false;
+        }
+    }
 
     return true;
 }
@@ -230,9 +280,8 @@ bool MEML_UART::Parse(std::vector<std::string> buffer, ts_joystick_read *read)
 // C WRAPPER TASK
 ///
 
-void uart_rx_task(uart_rx_t* uart_rx_ctx, chanend_t uart_dispatcher)
+void uart_rx_task(uart_rx_t* uart_rx_ctx)
 {
-    auto read = std::make_unique<ts_joystick_read>();
     auto uart_if = std::make_unique<MEML_UART>(uart_rx_ctx);
     debug_printf("UART- Initialised UART RX\n");
 
@@ -245,16 +294,9 @@ void uart_rx_task(uart_rx_t* uart_rx_ctx, chanend_t uart_dispatcher)
         // ...until a message is received in full
         if (uart_if->GetMessage(message)) {
             
-            // Parse message
-            if (uart_if->Parse(message, read.get())) {
-
-                // Send message down correct UART channel
-                //debug_printf("UART- Sending UART message down via channel.\n");
-                chan_out_buf_byte(
-                    uart_dispatcher,
-                    reinterpret_cast<unsigned char *>(read.get()),
-                    sizeof(ts_joystick_read)
-                );
+            // Parse message (and displatch to interface internally)
+            if (uart_if->Parse(message)) {
+                debug_printf("UART- Message passed to Interface.\n");
             }
         }
     }

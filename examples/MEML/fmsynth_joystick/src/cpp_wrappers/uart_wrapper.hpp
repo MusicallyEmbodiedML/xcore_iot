@@ -15,7 +15,7 @@ extern "C" {
  * be initialised.
  * @param uart_dispatcher Output channel to send processed data.
  */
-void uart_rx_task(uart_rx_t* uart_rx_ctx, chanend_t uart_dispatcher);
+void uart_rx_task(uart_rx_t* uart_rx_ctx);
 
 /**
  * @brief Transmission task. Currently doesn nothing.

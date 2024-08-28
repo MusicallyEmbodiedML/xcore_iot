@@ -21,13 +21,15 @@ typedef struct {
 typedef enum {
     joystick_potX,
     joystick_potY,
-    joystick_potRotate
+    joystick_potRotate,
+    joystick_nPots
 } te_joystick_pot;
 
 typedef enum {
     toggle_training,
     button_randomise,
-    button_savedata
+    button_savedata,
+    button_nButtons
 } te_button_idx;
 
 typedef enum {
