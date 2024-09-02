@@ -101,7 +101,7 @@ class MEML_UART {
 MEML_UART::MEML_UART(uart_rx_t *uart_rx_ctx) :
         uart_rx_ctx_(uart_rx_ctx),
         buffer_idx_(0),
-        button_states_({ false })
+        button_states_{false}
 {
 }
 
@@ -198,19 +198,19 @@ bool MEML_UART::_ParseJoystick(std::vector<std::string> &buffer)
         return false;
     }
 
-    unsigned int pot_index = std::atoi(buffer[0]);
+    unsigned int pot_index = std::atoi(buffer[0].c_str());
     if (pot_index >= joystick_nPots) {
-        debug_printf("UART- Wrong joystick index %s!\n", buffer[0]);
+        debug_printf("UART- Wrong joystick index %s!\n", buffer[0].c_str());
         return false;
     }
 
-    num_t pot_value = std::atof(buffer[1]) * u16_float_scaling;
+    num_t pot_value = std::atof(buffer[1].c_str()) * u16_float_scaling;
     if (pot_value > 1.00001f || pot_value < -0.00001f) {
-        debug_printf("UART- Wrong joystick value %s!\n", buffer[1]);
+        debug_printf("UART- Wrong joystick value %s!\n", buffer[1].c_str());
         return false;
     }
 
-    meml_interface->SetPot(pot_index, pot_value);
+    meml_interface->SetPot(static_cast<te_joystick_pot>(pot_index), pot_value);
 
     xscope_float(pot_index, pot_value);
 
@@ -224,28 +224,28 @@ bool MEML_UART::_ParseButton(std::vector<std::string> &buffer)
         return false;
     }
 
-    unsigned int btn_index = std::atoi(buffer[0]);
+    unsigned int btn_index = std::atoi(buffer[0].c_str());
     if (btn_index >= button_nButtons) {
-        debug_printf("UART- Wrong buttom index %s!\n", buffer[0]);
+        debug_printf("UART- Wrong buttom index %s!\n", buffer[0].c_str());
         return false;
     }
 
-    unsigned int btn_value = std::atoi(buffer[1]);
+    unsigned int btn_value = std::atoi(buffer[1].c_str());
     if (btn_value != 0 && btn_value != 1) {
-        debug_printf("UART- Wrong button value %s!\n", buffer[1]);
+        debug_printf("UART- Wrong button value %s!\n", buffer[1].c_str());
         return false;
     }
     bool btn_value_bool = !static_cast<bool>(btn_value);
 
     if (btn_index == 0) { // Toggle
-        meml_interface->SetToggleButton(btn_index, btn_value);
+        meml_interface->SetToggleButton(static_cast<te_button_idx>(btn_index), btn_value_bool);
     } else {  // Buttons
-        if (btn_value && !button_states[btn_index]) {
+        if (btn_value_bool && !button_states_[btn_index]) {
             // Pressed
-            meml_interface->SetToggleButton(btn_index, btn_value);
+            meml_interface->SetToggleButton(static_cast<te_button_idx>(btn_index), btn_value_bool);
         }
-        button_states[btn_index] = btn_value;
     }
+    button_states_[btn_index] = btn_value_bool;
 
     return true;
 }
@@ -295,8 +295,8 @@ void uart_rx_task(uart_rx_t* uart_rx_ctx)
         if (uart_if->GetMessage(message)) {
             
             // Parse message (and displatch to interface internally)
-            if (uart_if->Parse(message)) {
-                debug_printf("UART- Message passed to Interface.\n");
+            if (uart_if->ParseAndSend(message)) {
+                //debug_printf("UART- Message passed to Interface.\n");
             }
         }
     }
