@@ -165,7 +165,7 @@ void MEML_UART::_PrintBufferState()
     } else {
         buffer_[buffer_idx_-1] = '\0';
     }
-    debug_printf("UART- Buffer: %s\n", buffer_);
+    //debug_printf("UART- Buffer: %s\n", buffer_);
 }
 
 

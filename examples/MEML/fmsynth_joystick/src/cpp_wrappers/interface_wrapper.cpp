@@ -1,15 +1,19 @@
 #include "interface_wrapper.hpp"
 
-#include "chans_and_data.h"
-#include "fmsynth_wrapper.hpp"
-#include "FMSynth.hpp"
-
 extern "C" {
    #include <xcore/channel.h>
    #include "xcore_utils.h"
 }
 
+// STL includes
 #include <string>
+#include <utility>
+
+// Internal C++ includes
+#include "chans_and_data.h"
+#include "fmsynth_wrapper.hpp"
+#include "FMSynth.hpp"
+#include "mlp_wrapper.hpp"
 
 ///
 // C++ HELPER CLASSES
@@ -36,11 +40,13 @@ void MEMLInterface::SetPot(te_joystick_pot pot_n, num_t value)
 
    // If inference, send down to channel
    if (mode_ == mode_inference) {
+      debug_printf("INTF- Sending joystick state...\n");
       chan_out_buf_byte(
          interface_nn_joystick_,
          reinterpret_cast<unsigned char *>(joystick_current_.as_array),
          sizeof(ts_joystick_read)
       );
+      debug_printf("INTF- Sent joystick state.\n");
    }
 }
 
@@ -51,6 +57,7 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
 
          if (state == mode_inference && mode_ == mode_training) {
             // TODO AM trigger a training run of the MLP
+            Dataset::Train();
          }
          mode_ = static_cast<te_nn_mode>(state);
          std::string dbg_mode(( mode_ == mode_training ) ? "training" : "inference");
@@ -78,8 +85,19 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
 
       } break;
       case button_savedata: {
-         // TODO AM save data point
-         debug_printf("INTF- Save data point\n");
+         
+         // Save data point
+         std::vector<num_t> input{
+            joystick_current_.as_struct.potX,
+            joystick_current_.as_struct.potY,
+            joystick_current_.as_struct.potRotate,
+            1.f  // bias
+         };
+
+         Dataset::Add(
+            input, current_fmsynth_params_
+         );
+         debug_printf("INTF- Saved data point\n");
       } break;
       default: {}
    }
@@ -94,10 +112,12 @@ MEMLInterface *meml_interface = nullptr;
 
 
 void interface_init(chanend_t interface_nn_joystick,
-                    chanend_t interface_fmsynth)
+                    chanend_t interface_fmsynth,
+                    chanend_t interface_nn_data,
+                    chanend_t interface_nn_train)
 {
    meml_interface = new (meml_interface_mem_) MEMLInterface(
-      interface_nn_joystick,
-      interface_fmsynth
+   interface_nn_joystick,
+   interface_fmsynth
    );
 }

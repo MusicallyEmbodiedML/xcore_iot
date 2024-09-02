@@ -12,16 +12,29 @@
 
 void main_tile0(chanend_t c_gpio, chanend_t c_nn_paramupdate)
 {
+    // Joystick coordinates channel
     channel_t chan_dispatcher_nn = chan_alloc();
+    // Data points channel
+    channel_t chan_interface_nn_data = chan_alloc();
+    // Training event channel
+    channel_t chan_interface_nn_train = chan_alloc();
 
     platform_init_tile_0(c_gpio, c_nn_paramupdate);
 
-    interface_init(chan_dispatcher_nn.end_a, tile0_ctx->c_nn_paramupdate);
+    interface_init(
+        chan_dispatcher_nn.end_a,
+        tile0_ctx->c_nn_paramupdate,
+        chan_interface_nn_data.end_a,
+        chan_interface_nn_train.end_a);
 
     PAR_JOBS (
         PJOB(gpio_server, (tile0_ctx->c_from_gpio, tile0_ctx->c_to_gpio)),
         PJOB(uart_rx_task, (&tile0_ctx->uart_rx_ctx)),
-        PJOB(mlp_task, (chan_dispatcher_nn.end_b, tile0_ctx->c_nn_paramupdate))
+        PJOB(mlp_task, (
+            chan_dispatcher_nn.end_b,
+            tile0_ctx->c_nn_paramupdate,
+            chan_interface_nn_data.end_b,
+            chan_interface_nn_train.end_b))
     );
 }
 

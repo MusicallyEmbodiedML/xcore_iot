@@ -12,7 +12,9 @@ extern "C" {
 
 void interface_init(
     chanend_t interface_nn_joystick,
-    chanend_t interface_fmsynth);
+    chanend_t interface_fmsynth,
+    chanend_t interface_nn_data,
+    chanend_t interface_nn_train);
 
 }  // extern "C"
 
