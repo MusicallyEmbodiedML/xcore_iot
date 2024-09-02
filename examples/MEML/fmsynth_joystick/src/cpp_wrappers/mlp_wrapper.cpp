@@ -63,7 +63,7 @@ void Dataset::Train()
     debug_printf("MLP- Feature dim %d, label dim %d.\n", dataset.first[0].size(), dataset.second[0].size());
     debug_printf("MLP- Training...\n");
     mlp.Train(dataset,
-              0.01,
+              0.1,
               1000,
               0.0001,
               false);

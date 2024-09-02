@@ -56,7 +56,6 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
       case toggle_training: {
 
          if (state == mode_inference && mode_ == mode_training) {
-            // TODO AM trigger a training run of the MLP
             Dataset::Train();
          }
          mode_ = static_cast<te_nn_mode>(state);
