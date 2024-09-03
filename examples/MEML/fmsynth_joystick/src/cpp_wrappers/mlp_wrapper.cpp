@@ -9,6 +9,7 @@ extern "C" {
 #include <xcore/channel.h>
 #include <xcore/select.h>
 #include "xcore_utils.h"
+#include <stdio.h>
 }
 // Local includes
 #include "chans_and_data.h"
@@ -63,12 +64,74 @@ void Dataset::Train()
     debug_printf("MLP- Feature dim %d, label dim %d.\n", dataset.first[0].size(), dataset.second[0].size());
     debug_printf("MLP- Training...\n");
     mlp.Train(dataset,
-              0.1,
+              1.,
               1000,
               0.0001,
               false);
     debug_printf("MLP- Trained.\n");
 }
+
+///
+// Pretty printing debug helper
+///
+
+static void PrintVector(std::vector<float> &v) {
+    debug_printf("[ ");
+    unsigned int howmany = 0;
+    for (auto &el : v) {
+        printf("%f, ", el);
+        howmany++;
+    }
+    if (!howmany) {
+        debug_printf("Empty vector, size %s ", v.size());
+    };
+    debug_printf("],\n");
+}
+
+static void PrintNode(Node<float> &n) {
+    PrintVector(n.m_weights);
+}
+
+static void PrintLayer(Layer<float> &l) {
+    debug_printf("[ ");
+    for(auto &n : l.m_nodes) {
+        PrintNode(n);
+    }
+    debug_printf("],\n");
+}
+
+static void PrintModel(MLP<float> &m) {
+    debug_printf("'model': {");
+    for(auto &l : m.m_layers) {
+        PrintLayer(l);
+    }
+    debug_printf("},\n");
+}
+
+static void PrintMember(const char *name,
+        std::vector<std::vector<float>  > &fvec) {
+    debug_printf("'%s': {", name);
+    for(auto &f : fvec) {
+        PrintVector(f);
+    }
+    debug_printf("},\n");
+}
+
+static void PrintDataset() {
+    debug_printf("'dataset': {");
+    PrintMember("features", features);
+    PrintMember("labels", labels);
+    debug_printf("},\n");;
+}
+
+void DebugDumpJSON() {
+    PrintDataset();
+    PrintModel(mlp);
+}
+
+///
+// \end Pretty printing debug helper
+///
 
 
 void mlp_task(chanend_t dispatcher_nn,

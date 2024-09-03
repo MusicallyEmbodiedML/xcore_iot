@@ -36,5 +36,6 @@ class Dataset {
     static void Train();
 };
 
+void DebugDumpJSON();
 
 #endif  // __MLP_WRAPPER_HPP__
