@@ -1,5 +1,7 @@
 add_library(meml_lib STATIC)
 
+#set(CMAKE_BUILD_TYPE Debug)
+
 # Variable for source files
 set(MEML_SOURCES)
 # Variable for header paths
@@ -32,6 +34,7 @@ target_compile_definitions(meml_lib
 target_compile_options(meml_lib
     PRIVATE
         $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
+        -d
         -O0
         -Wall
 )
