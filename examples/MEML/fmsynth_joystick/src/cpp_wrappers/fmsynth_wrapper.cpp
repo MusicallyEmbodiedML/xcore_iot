@@ -14,7 +14,7 @@ extern "C" {
 // XMOS includes
 #include <xcore/channel.h>
 #include <xscope.h>
-#include "xcore_utils.h"
+//#include "xcore_utils.h"
 }  // extern "C"
 
 #if TEST_WITH_SINE
@@ -62,14 +62,14 @@ void fmsynth_paramupdate_task(chanend_t nn_paramupdate)
             sizeof(num_t) * kN_synthparams
         );
 
-        debug_printf("FMSynth- Something is received.\n");
+        //debug_printf("FMSynth- Something is received.\n");
 
         xscope_float(3, params[0]);
         xscope_float(4, params[kN_synthparams-1]);
 
         if (fmsyn != nullptr) {
             fmsyn->mapParameters(params);
-            debug_printf("FMSynth- Params are mapped.\n");
+            //debug_printf("FMSynth- Params are mapped.\n");
         }
 #endif
     }

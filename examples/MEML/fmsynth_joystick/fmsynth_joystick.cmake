@@ -20,8 +20,7 @@ set(APP_INCLUDES
 # Flags
 #**********************
 set(APP_COMPILER_FLAGS
-    -O0
-    -g
+    -O3
     -report
     -fxscope
     -mcmodel=large

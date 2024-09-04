@@ -34,8 +34,7 @@ target_compile_definitions(meml_lib
 target_compile_options(meml_lib
     PRIVATE
         $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
-        -d
-        -O0
+        -O3
         -Wall
 )
 

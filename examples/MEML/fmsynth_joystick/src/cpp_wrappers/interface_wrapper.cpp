@@ -41,13 +41,13 @@ void MEMLInterface::SetPot(te_joystick_pot pot_n, num_t value)
 
    // If inference, send down to channel
    if (mode_ == mode_inference) {
-      debug_printf("INTF- Sending joystick state...\n");
+      //debug_printf("INTF- Sending joystick state...\n");
       chan_out_buf_byte(
          interface_nn_joystick_,
          reinterpret_cast<unsigned char *>(joystick_current_.as_array),
          sizeof(ts_joystick_read)
       );
-      debug_printf("INTF- Sent joystick state.\n");
+      //debug_printf("INTF- Sent joystick state.\n");
    }
 }
 
