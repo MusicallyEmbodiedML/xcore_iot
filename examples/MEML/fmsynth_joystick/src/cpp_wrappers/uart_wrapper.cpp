@@ -9,7 +9,6 @@ extern "C" {
 #include <platform.h>
 #include <xs1.h>
 #include <xcore/channel.h>
-#include <xscope.h>
 
 /* Platform headers */
 #include "soc.h"
@@ -212,7 +211,7 @@ bool MEML_UART::_ParseJoystick(std::vector<std::string> &buffer)
 
     meml_interface->SetPot(static_cast<te_joystick_pot>(pot_index), pot_value);
 
-    xscope_float(pot_index, pot_value);
+    //xscope_float(pot_index, pot_value);
 
     return true;
 }

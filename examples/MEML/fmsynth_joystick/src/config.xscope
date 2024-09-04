@@ -23,9 +23,15 @@
     <Probe name="AP Stage A" type="CONTINUOUS" datatype="FLOAT" units="Value" enabled="true"/>
     <Probe name="AP Stage C" type="CONTINUOUS" datatype="FLOAT" units="Value" enabled="true"/>
     -->
+    <!--
     <Probe name="Joystick X" type="CONTINUOUS" datatype="FLOAT" units="Value" enabled="true"/>
     <Probe name="Joystick Y" type="CONTINUOUS" datatype="FLOAT" units="Value" enabled="true"/>
     <Probe name="Joystick Z" type="CONTINUOUS" datatype="FLOAT" units="Value" enabled="true"/>
     <Probe name="Param 1" type="CONTINUOUS" datatype="FLOAT" units="Value" enabled="true"/>
     <Probe name="Param 14" type="CONTINUOUS" datatype="FLOAT" units="Value" enabled="true"/>
+    -->
+    <Probe name="StageA" type="CONTINUOUS" datatype="UINT" units="On/Off" enabled="true"/>
+    <Probe name="StageB" type="CONTINUOUS" datatype="UINT" units="On/Off" enabled="true"/>
+    <Probe name="StageC" type="CONTINUOUS" datatype="UINT" units="On/Off" enabled="true"/>
+    <Probe name="Idle" type="CONTINUOUS" datatype="UINT" units="On/Off" enabled="true"/>
 </xSCOPEconfig>

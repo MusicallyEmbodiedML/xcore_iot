@@ -13,7 +13,7 @@
 extern "C" {
 // XMOS includes
 #include <xcore/channel.h>
-#include <xscope.h>
+//#include <xscope.h>
 //#include "xcore_utils.h"
 }  // extern "C"
 
@@ -64,8 +64,8 @@ void fmsynth_paramupdate_task(chanend_t nn_paramupdate)
 
         //debug_printf("FMSynth- Something is received.\n");
 
-        xscope_float(3, params[0]);
-        xscope_float(4, params[kN_synthparams-1]);
+        //xscope_float(3, params[0]);
+        //xscope_float(4, params[kN_synthparams-1]);
 
         if (fmsyn != nullptr) {
             fmsyn->mapParameters(params);

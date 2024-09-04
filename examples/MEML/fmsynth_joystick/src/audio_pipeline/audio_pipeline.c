@@ -7,17 +7,7 @@
 #include <string.h>
 #include <xcore/triggerable.h>
 
-#define XSCOPE_PROBES    0
-
-#if XSCOPE_PROBES
-
-#include <xscope.h>
-enum {
-    probe_ap_stage_a,
-    probe_ap_stage_c,
-};
-
-#endif  // XSCOPE_PROBES
+#include "probes.h"
 
 /* Platform headers */
 #include "xcore_utils.h"
@@ -49,6 +39,8 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
     {
         // get the frame from the mic array
         ma_frame_rx_transpose((int32_t *) input, c_input, appconfMIC_COUNT, appconfAUDIO_FRAME_LENGTH);
+        xscope_int(probe_ap_idle, 0);
+        xscope_int(probe_ap_stage_a, 1);
         // change the frame format to [channel][sample]
         for(int ch = 0; ch < appconfMIC_COUNT; ch ++){
             for(int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++){
@@ -60,13 +52,13 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
             int32_t y = fmsynth_generate() / 10;
             output[0][smp] = y;
 
-#if XSCOPE_PROBES
-            xscope_float(probe_ap_stage_a, output[0][smp]);
-#endif
+
         }
 #endif  // ENABLE_FMSYNTH
         // send the frame to the next stage
         s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
+        xscope_int(probe_ap_stage_a, 0);
+
     }
 }
 
@@ -94,6 +86,7 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
         {
             input_frames:
             {
+                xscope_int(probe_ap_stage_b, 1);
                 // recieve frame over the channel
                 s_chan_in_buf_word(c_input, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
                 // calculate the headroom of the new frames
@@ -111,6 +104,7 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
                 bfp_s32_use_exponent(&ch1, appconfEXP);
                 // send frame over the channel
                 s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
+                xscope_int(probe_ap_stage_b, 0);
             }
             continue;
         }
@@ -160,6 +154,7 @@ void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
                 uint8_t led_byte = 0;
                 // recieve frame over the channel
                 s_chan_in_buf_word(c_input, (uint32_t*) input, appconfFRAMES_IN_ALL_CHANS);
+                xscope_int(probe_ap_stage_c, 1);
                 // calculate the headroom of the new frames
                 bfp_s32_headroom(&ch0);
                 bfp_s32_headroom(&ch1);
@@ -180,11 +175,10 @@ void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
                         output[smp][ch] = input[ch][smp];
                     }
                 }
-#if XSCOPE_PROBES
-                xscope_float(probe_ap_stage_c, output[0][0]);
-#endif
                 // send frame over the channel
                 s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
+                xscope_int(probe_ap_stage_c, 0);
+                xscope_int(probe_ap_idle, 1);
             }
             continue;
         }
