@@ -8,7 +8,7 @@
 
 int triggered_rx = 0;
 int triggered_tx = 0;
-static bool init_done = false;
+static bool init_pause = false;
 
 static void tile1_setup_dac(void);
 static void tile1_i2s_init(void);
@@ -58,9 +58,6 @@ static int i2s_mclk_bclk_ratio(
 I2S_CALLBACK_ATTR
 static void i2s_init(tile1_ctx_t *app_data, i2s_config_t *i2s_config)
 {
-    //int32_t DWORD_ALIGNED output[5][appconfMIC_COUNT];
-    chanend_t *c_out = &app_data->c_init_codec;
-
     i2s_config->mode = I2S_MODE_I2S;
     i2s_config->mclk_bclk_ratio =  i2s_mclk_bclk_ratio(appconfAUDIO_CLOCK_FREQUENCY, appconfPIPELINE_AUDIO_SAMPLE_RATE); 
 }
@@ -86,20 +83,21 @@ static void i2s_receive(tile1_ctx_t *app_data, size_t num_in, const int32_t *i2s
 I2S_CALLBACK_ATTR
 static void i2s_send(tile1_ctx_t *app_data, size_t num_out, int32_t *i2s_sample_buf)
 {
-    int32_t output[2] = {0};
+    int N_INIT = 2;
+    int32_t init_frame[2] = {0};
     chanend_t *c_out = &app_data->c_i2s_to_dac;
 
-    int N_INIT = 2;
-    if(!init_done) {
+    
+    if(!init_pause) {
         uint32_t time_now = get_reference_time();
-        while(get_reference_time() < (time_now + 100000000));
-        init_done = true;        
+        while(get_reference_time() < (time_now + 1000000)); //seems stable with this delay
+        init_pause = true;        
     }
     if(triggered_tx < N_INIT) {
         uint32_t time_now = get_reference_time();
-        while(get_reference_time() < (time_now + 10000));
+        while(get_reference_time() < (time_now + 10000)); //seems stable with this delay
         // send blank frames
-        memcpy(output, (uint32_t*)i2s_sample_buf, 2);
+        memcpy(init_frame, (uint32_t*)i2s_sample_buf, 2);
         debug_printf("init tx: %d\n", triggered_tx);
         triggered_tx++;
     } else {

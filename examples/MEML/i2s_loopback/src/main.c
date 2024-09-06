@@ -43,7 +43,6 @@ void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 
     tile1_ctx->c_i2s_to_dac = s_chan_i2s_out.end_b;
     tile1_ctx->c_adc_to_i2s = s_chan_i2s_in.end_a;
-    tile1_ctx->c_init_codec = s_chan_i2s_out.end_a;
 
     PAR_JOBS (
         PJOB(burn, ()),
@@ -51,8 +50,6 @@ void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
         PJOB(ap_stage_b, (s_chan_ab.end_b, s_chan_bc.end_a, tile1_ctx->c_from_gpio)),
         PJOB(ap_stage_c, (s_chan_bc.end_b, s_chan_i2s_out.end_a, tile1_ctx->c_to_gpio)),
         PJOB(i2s_master, (&tile1_ctx->i2s_cb_group, tile1_ctx->p_i2s_dout, 1, tile1_ctx->p_i2s_din, 1, tile1_ctx->p_bclk, tile1_ctx->p_lrclk, tile1_ctx->p_mclk, tile1_ctx->bclk)),
-        //PJOB(uart_rx_demo, (&tile1_ctx->uart_rx_ctx)),
-        //PJOB(uart_tx_demo, (&tile1_ctx->uart_tx_ctx)),
         PJOB(burn, ()),
         PJOB(burn, ()),
         PJOB(burn, ())
