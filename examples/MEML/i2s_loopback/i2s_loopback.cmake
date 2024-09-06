@@ -21,7 +21,7 @@ set(APP_COMPILER_FLAGS
     -mcmodel=large
     -Wno-xcore-fptrgroup
     ${CMAKE_CURRENT_LIST_DIR}/src/config.xscope
-    ${CMAKE_CURRENT_LIST_DIR}/XK-EVK-XU316.xn
+    ${CMAKE_CURRENT_LIST_DIR}/XCORE-AI-EXPLORER.xn
 )
 set(APP_COMPILE_DEFINITIONS
     DEBUG_PRINT_ENABLE=1
@@ -43,7 +43,7 @@ set(APP_COMPILE_DEFINITIONS
 set(APP_LINK_OPTIONS
     -lquadflash
     -report
-    ${CMAKE_CURRENT_LIST_DIR}/XK-EVK-XU316.xn
+    ${CMAKE_CURRENT_LIST_DIR}/XCORE-AI-EXPLORER.xn
     ${CMAKE_CURRENT_LIST_DIR}/src/config.xscope
 )
 

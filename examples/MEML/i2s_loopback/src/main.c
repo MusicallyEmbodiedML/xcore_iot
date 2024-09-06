@@ -43,6 +43,7 @@ void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 
     tile1_ctx->c_i2s_to_dac = s_chan_i2s_out.end_b;
     tile1_ctx->c_adc_to_i2s = s_chan_i2s_in.end_a;
+    tile1_ctx->c_init_codec = s_chan_i2s_out.end_a;
 
     PAR_JOBS (
         PJOB(burn, ()),
