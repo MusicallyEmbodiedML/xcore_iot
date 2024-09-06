@@ -8,7 +8,7 @@
 
 int triggered_rx = 0;
 int triggered_tx = 0;
-static bool triggered_send = false;
+static bool init_done = false;
 
 static void tile1_setup_dac(void);
 static void tile1_i2s_init(void);
@@ -80,22 +80,27 @@ static void i2s_receive(tile1_ctx_t *app_data, size_t num_in, const int32_t *i2s
     if (triggered_rx < 10){
         debug_printf("triggered rx: %d\n", triggered_rx);
         triggered_rx++;
-    }    
+    }
 }
 
 I2S_CALLBACK_ATTR
 static void i2s_send(tile1_ctx_t *app_data, size_t num_out, int32_t *i2s_sample_buf)
 {
-    int32_t output[2] = {0, 0};
+    int32_t output[2] = {0};
     chanend_t *c_out = &app_data->c_i2s_to_dac;
 
-    int N_INIT = 5;
+    int N_INIT = 2;
+    if(!init_done) {
+        uint32_t time_now = get_reference_time();
+        while(get_reference_time() < (time_now + 100000000));
+        init_done = true;        
+    }
     if(triggered_tx < N_INIT) {
-        //uint32_t time_now = get_reference_time();
-        //while(get_reference_time() < (time_now + 100000000)); // Wait for a second
-        // send frames over the channel
+        uint32_t time_now = get_reference_time();
+        while(get_reference_time() < (time_now + 10000));
+        // send blank frames
         memcpy(output, (uint32_t*)i2s_sample_buf, 2);
-        debug_printf("triggered sending to i2s\n");
+        debug_printf("init tx: %d\n", triggered_tx);
         triggered_tx++;
     } else {
         s_chan_in_buf_word(*c_out, (uint32_t*)i2s_sample_buf, appconfMIC_COUNT);

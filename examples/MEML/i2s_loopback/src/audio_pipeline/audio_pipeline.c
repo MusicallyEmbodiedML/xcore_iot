@@ -23,7 +23,7 @@
 static bool triggered_stage_a = false;
 static bool triggered_stage_b = false;
 static bool triggered_stage_c = false;
-static bool triggered_send = false;
+static bool init_done = false;
 
 //#include <hwtimer.h>
 void ap_stage_a(chanend_t c_input, chanend_t c_output) {
