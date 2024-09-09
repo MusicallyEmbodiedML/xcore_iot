@@ -4,6 +4,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     include(${CMAKE_CURRENT_LIST_DIR}/MEML/UART_example/UART_example.cmake)
     include(${CMAKE_CURRENT_LIST_DIR}/MEML/UART_read/UART_read.cmake)
     include(${CMAKE_CURRENT_LIST_DIR}/MEML/fmsynth_joystick/fmsynth_joystick.cmake)
+    include(${CMAKE_CURRENT_LIST_DIR}/MEML/i2s_loopback/i2s_loopback.cmake)
     
     ## Bare metal examples
     include(${CMAKE_CURRENT_LIST_DIR}/bare-metal/explorer_board/explorer_board.cmake)
