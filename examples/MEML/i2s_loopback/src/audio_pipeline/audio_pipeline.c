@@ -10,6 +10,7 @@
 #include <xcore/interrupt.h>
 
 #include <stdbool.h>
+#include "probes.h"
 
 /* Platform headers */
 #include "xcore_utils.h"
@@ -23,6 +24,7 @@
 static bool triggered_stage_a = false;
 static bool triggered_stage_b = false;
 static bool triggered_stage_c = false;
+static bool triggered_stage_z = false;
 static bool triggered_send = false;
 
 //#include <hwtimer.h>
@@ -49,6 +51,8 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
                 }        
                 // get the frame from the i2s input
                 s_chan_in_buf_word(c_input, (uint32_t*) input, appconfFRAMES_IN_ALL_CHANS);
+                xscope_int(probe_ap_idle, 0);
+                xscope_int(probe_ap_stage_a, 1);
 
                 // change the frame format to [channel][sample]
                 for(int ch = 0; ch < appconfMIC_COUNT; ch ++){
@@ -57,6 +61,7 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
                     }
                 }
                 // send the frame to the next stage
+                xscope_int(probe_ap_stage_a, 0);
                 s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
             }
             continue;
@@ -95,6 +100,8 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
                 }
                 // recieve frame over the channel
                 s_chan_in_buf_word(c_input, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
+                xscope_int(probe_ap_stage_b, 1);
+#if 1
                 // calculate the headroom of the new frames
                 bfp_s32_headroom(&ch0);
                 bfp_s32_headroom(&ch1);
@@ -108,7 +115,9 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
                 // normalise exponent
                 bfp_s32_use_exponent(&ch0, appconfEXP);
                 bfp_s32_use_exponent(&ch1, appconfEXP);
+#endif
                 // send frame over the channel
+                xscope_int(probe_ap_stage_b, 0);
                 s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
             }
             continue;
@@ -136,7 +145,6 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
 }
 
 void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
-    bool new_frame = true;
     int32_t DWORD_ALIGNED input[appconfMIC_COUNT][appconfAUDIO_FRAME_LENGTH];
     int32_t DWORD_ALIGNED output[appconfAUDIO_FRAME_LENGTH][appconfMIC_COUNT];
     // initialise block floating point structures for both channels
@@ -178,6 +186,8 @@ void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
                 uint8_t led_byte = 0;
                 // recieve frame over the channel
                 s_chan_in_buf_word(c_input, (uint32_t*) input, appconfFRAMES_IN_ALL_CHANS);
+                xscope_int(probe_ap_stage_c, 1);
+#if 1
                 // calculate the headroom of the new frames
                 bfp_s32_headroom(&ch0);
                 bfp_s32_headroom(&ch1);
@@ -192,15 +202,83 @@ void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
                 }
                 // send led value to gpio
                 chanend_out_byte(c_to_gpio, led_byte);
+#endif
                 // change the array format to [sample][channel]
                 for(int ch = 0; ch < appconfMIC_COUNT; ch ++){
                     for(int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++){
                         output[smp][ch] = input[ch][smp];
                     }
                 }
+                xscope_int(probe_ap_stage_c, 0);
+                xscope_int(probe_ap_idle, 1);
                 // send frame over the channel
-                s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);                
-                //new_frame = true;
+                s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
+            }
+            continue;
+        }
+    }
+}
+
+
+void ap_single_stage(chanend_t c_input, chanend_t c_output) {
+    int32_t DWORD_ALIGNED input[appconfMIC_COUNT][appconfAUDIO_FRAME_LENGTH];
+    int32_t DWORD_ALIGNED output[appconfAUDIO_FRAME_LENGTH][appconfMIC_COUNT];
+
+    // Create a dummy frame to initialise i2s on first run
+    for(int ch = 0; ch < appconfMIC_COUNT; ch ++){
+        for(int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++){
+            output[smp][ch] = 0;
+        }
+    }    
+    uint32_t time_now = get_reference_time();
+    while(get_reference_time() < (time_now + 100000000)); // Wait for a millisecond
+    // send frames over the channel
+    debug_printf("AP- Trying to kickstart i2s...\n");
+    s_chan_out_buf_word(c_output, (uint32_t*) output, 10);  // Why 10???
+    if (!triggered_send){
+        debug_printf("AP- triggered sending to i2s\n");
+        triggered_send = true;
+    }    
+
+    triggerable_disable_all();
+    // initialise event
+    TRIGGERABLE_SETUP_EVENT_VECTOR(c_input, input_frames);
+
+    triggerable_enable_trigger(c_input);
+
+    while(1)
+    {
+        TRIGGERABLE_WAIT_EVENT(input_frames);
+        {
+            input_frames:
+            {
+                if (!triggered_stage_z){
+                    debug_printf("AP- triggered single stage\n");
+                    triggered_stage_z = true;
+                }
+                // receive frame over the channel
+                s_chan_in_buf_word(c_input, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
+                xscope_int(probe_ap_stage_z, 1);
+                // change the frame format to [channel][sample]
+                for(int ch = 0; ch < appconfMIC_COUNT; ch ++){
+                    for(int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++){
+                        input[ch][smp] = output[smp][ch];
+                    }
+                }
+
+                ///
+                // PAYLOAD
+                ///
+
+                // change the array format to [sample][channel]
+                for(int ch = 0; ch < appconfMIC_COUNT; ch ++){
+                    for(int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++){
+                        output[smp][ch] = input[ch][smp];
+                    }
+                }
+                xscope_int(probe_ap_stage_z, 0);
+                // send frame over the channel
+                s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
             }
             continue;
         }

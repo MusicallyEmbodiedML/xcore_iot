@@ -11,4 +11,6 @@ DECLARE_JOB(ap_stage_a, (chanend_t, chanend_t));
 DECLARE_JOB(ap_stage_b, (chanend_t, chanend_t, chanend_t));
 DECLARE_JOB(ap_stage_c, (chanend_t, chanend_t, chanend_t));
 
+DECLARE_JOB(ap_single_stage, (chanend_t, chanend_t));
+
 #endif /* AUDIO_PIPELINE_H_ */
