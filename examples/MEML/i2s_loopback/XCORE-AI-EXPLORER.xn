@@ -3,7 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://www.xmos.com http://www.xmos.com">
   <Type>Board</Type>
-  <Name>xcore.ai Explorer Kit (XK-EVK-XU316)</Name>
+  <Name>xcore.ai Explorer Kit</Name>
 
   <Declarations>
     <Declaration>tileref tile[2]</Declaration>
@@ -41,13 +41,16 @@
 
               Therefore:
               0x20: Half drive strength
-              0x30b: tREFI 7.79us, tRAS 0us, tXSR 0us, tWR 0us
+              0x2aa: tREFI 7.79us, tRAS 0us, tXSR 0us, tWR 0us
             -->
           </Extmem>
           <Tile Number="0" Reference="tile[0]">
             <Port Location="XS1_PORT_1B" Name="PORT_SQI_CS"/>
             <Port Location="XS1_PORT_1C" Name="PORT_SQI_SCLK"/>
             <Port Location="XS1_PORT_4B" Name="PORT_SQI_SIO"/>
+            
+            <Port Location="XS1_PORT_1N"  Name="PORT_I2C_SCL"/>
+            <Port Location="XS1_PORT_1O"  Name="PORT_I2C_SDA"/>
             
             <Port Location="XS1_PORT_4C" Name="PORT_LEDS"/>
             <Port Location="XS1_PORT_4D" Name="PORT_BUTTONS"/>
@@ -60,10 +63,6 @@
             <Port Location="XS1_PORT_1M"  Name="WIFI_MISO"/>
           </Tile>
           <Tile Number="1" Reference="tile[1]">
-            <!-- I2C ports -->
-            <Port Location="XS1_PORT_1N" Name="PORT_I2C_SCL"/>
-            <Port Location="XS1_PORT_1O" Name="PORT_I2C_SDA"/>
-
             <!-- Mic related ports -->
             <Port Location="XS1_PORT_1G" Name="PORT_PDM_CLK"/>
             <Port Location="XS1_PORT_1F" Name="PORT_PDM_DATA"/>
@@ -80,7 +79,6 @@
       </Nodes>
     </Package>
   </Packages>
-
   <Nodes>
     <Node Id="2" Type="device:" RoutingId="0x8000">
       <Service Id="0" Proto="xscope_host_data(chanend c);">
@@ -88,24 +86,24 @@
       </Service>
     </Node>
   </Nodes>
-
   <Links>
     <Link Encoding="2wire" Delays="5clk" Flags="XSCOPE">
       <LinkEndpoint NodeId="0" Link="XL0"/>
       <LinkEndpoint NodeId="2" Chanend="1"/>
     </Link>
   </Links>
-
   <ExternalDevices>
-    <Device NodeId="0" Tile="0" Class="SQIFlash" Name="bootFlash" PageSize="256" SectorSize="4096" NumPages="16384">
-      <Attribute Name="PORT_SQI_CS"   Value="PORT_SQI_CS"/>
-      <Attribute Name="PORT_SQI_SCLK" Value="PORT_SQI_SCLK"/>
+    <Device NodeId="0" Tile="0" Class="SQIFlash" Name="bootFlash" Type="S25FL116K" PageSize="256" SectorSize="4096" NumPages="16384">
+      <Attribute Name="PORT_SQI_CS" Value="PORT_SQI_CS"/>
+      <Attribute Name="PORT_SQI_SCLK"   Value="PORT_SQI_SCLK"/>
       <Attribute Name="PORT_SQI_SIO"  Value="PORT_SQI_SIO"/>
+      <Attribute Name="QE_REGISTER" Value="flash_qe_location_status_reg_0"/>
+      <Attribute Name="QE_BIT" Value="flash_qe_bit_6"/>
     </Device>
   </ExternalDevices>
-
   <JTAGChain>
     <JTAGDevice NodeId="0"/>
   </JTAGChain>
 
 </Network>
+

@@ -60,8 +60,6 @@ void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
         PJOB(ap_single_stage, (s_chan_i2s_in.end_b, s_chan_i2s_out.end_a)),
 #endif
         PJOB(i2s_master, (&tile1_ctx->i2s_cb_group, tile1_ctx->p_i2s_dout, 1, tile1_ctx->p_i2s_din, 1, tile1_ctx->p_bclk, tile1_ctx->p_lrclk, tile1_ctx->p_mclk, tile1_ctx->bclk)),
-        //PJOB(uart_rx_demo, (&tile1_ctx->uart_rx_ctx)),
-        //PJOB(uart_tx_demo, (&tile1_ctx->uart_tx_ctx)),
         PJOB(burn, ()),
         PJOB(burn, ()),
         PJOB(burn, ())

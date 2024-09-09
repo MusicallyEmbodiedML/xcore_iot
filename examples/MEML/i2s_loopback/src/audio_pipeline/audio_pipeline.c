@@ -151,21 +151,6 @@ void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
     bfp_s32_t ch0, ch1;
     bfp_s32_init(&ch0, input[0], appconfEXP, appconfAUDIO_FRAME_LENGTH, 0);
     bfp_s32_init(&ch1, input[1], appconfEXP, appconfAUDIO_FRAME_LENGTH, 0);
-    
-    // Create a dummy frame to initialise i2s on first run
-    for(int ch = 0; ch < appconfMIC_COUNT; ch ++){
-        for(int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++){
-            output[smp][ch] = 0;
-        }
-    }    
-    uint32_t time_now = get_reference_time();
-    while(get_reference_time() < (time_now + 100000000)); // Wait for a millisecond
-    // send frames over the channel
-    s_chan_out_buf_word(c_output, (uint32_t*) output, 10);
-    if (!triggered_send){
-        debug_printf("triggered sending to i2s\n");
-        triggered_send = true;
-    }    
 
     triggerable_disable_all();
     // initialise event
@@ -222,23 +207,7 @@ void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
 
 void ap_single_stage(chanend_t c_input, chanend_t c_output) {
     int32_t DWORD_ALIGNED input[appconfMIC_COUNT][appconfAUDIO_FRAME_LENGTH];
-    int32_t DWORD_ALIGNED output[appconfAUDIO_FRAME_LENGTH][appconfMIC_COUNT];
-
-    // Create a dummy frame to initialise i2s on first run
-    for(int ch = 0; ch < appconfMIC_COUNT; ch ++){
-        for(int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++){
-            output[smp][ch] = 0;
-        }
-    }    
-    uint32_t time_now = get_reference_time();
-    while(get_reference_time() < (time_now + 100000000)); // Wait for a millisecond
-    // send frames over the channel
-    debug_printf("AP- Trying to kickstart i2s...\n");
-    s_chan_out_buf_word(c_output, (uint32_t*) output, 10);  // Why 10???
-    if (!triggered_send){
-        debug_printf("AP- triggered sending to i2s\n");
-        triggered_send = true;
-    }    
+    int32_t DWORD_ALIGNED output[appconfAUDIO_FRAME_LENGTH][appconfMIC_COUNT];  
 
     triggerable_disable_all();
     // initialise event

@@ -8,6 +8,7 @@
 
 int triggered_rx = 0;
 int triggered_tx = 0;
+static bool init_pause = false;
 
 static void tile1_setup_dac(void);
 static void tile1_i2s_init(void);
@@ -55,10 +56,10 @@ static int i2s_mclk_bclk_ratio(
 }
 
 I2S_CALLBACK_ATTR
-static void i2s_init(chanend_t *input_c, i2s_config_t *i2s_config)
+static void i2s_init(tile1_ctx_t *app_data, i2s_config_t *i2s_config)
 {
     i2s_config->mode = I2S_MODE_I2S;
-    i2s_config->mclk_bclk_ratio =  i2s_mclk_bclk_ratio(appconfAUDIO_CLOCK_FREQUENCY, appconfPIPELINE_AUDIO_SAMPLE_RATE);
+    i2s_config->mclk_bclk_ratio =  i2s_mclk_bclk_ratio(appconfAUDIO_CLOCK_FREQUENCY, appconfPIPELINE_AUDIO_SAMPLE_RATE); 
 }
 
 I2S_CALLBACK_ATTR
@@ -76,19 +77,36 @@ static void i2s_receive(tile1_ctx_t *app_data, size_t num_in, const int32_t *i2s
     if (triggered_rx < 10){
         debug_printf("triggered rx: %d\n", triggered_rx);
         triggered_rx++;
-    }    
+    }
 }
 
 I2S_CALLBACK_ATTR
 static void i2s_send(tile1_ctx_t *app_data, size_t num_out, int32_t *i2s_sample_buf)
 {
-  
+    int N_INIT = 2;
+    int32_t init_frame[2] = {0};
     chanend_t *c_out = &app_data->c_i2s_to_dac;
-    s_chan_in_buf_word(*c_out, (uint32_t*)i2s_sample_buf, appconfMIC_COUNT);
-    if (triggered_tx < 10){
-        debug_printf("triggered tx: %d\n", triggered_tx);
+
+    
+    if(!init_pause) {
+        uint32_t time_now = get_reference_time();
+        while(get_reference_time() < (time_now + 1000000)); //seems stable with this delay
+        init_pause = true;        
+    }
+    if(triggered_tx < N_INIT) {
+        uint32_t time_now = get_reference_time();
+        while(get_reference_time() < (time_now + 10000)); //seems stable with this delay
+        // send blank frames
+        memcpy(init_frame, (uint32_t*)i2s_sample_buf, 2);
+        debug_printf("init tx: %d\n", triggered_tx);
         triggered_tx++;
-    }      
+    } else {
+        s_chan_in_buf_word(*c_out, (uint32_t*)i2s_sample_buf, appconfMIC_COUNT);
+        if (triggered_tx < 10){
+            debug_printf("triggered tx: %d\n", triggered_tx);
+            triggered_tx++;
+        }  
+    }    
 }
 
 static void tile1_i2s_init(void)
@@ -97,7 +115,6 @@ static void tile1_i2s_init(void)
     tile1_ctx->i2s_cb_group.restart_check = (i2s_restart_check_t) i2s_restart_check;
     tile1_ctx->i2s_cb_group.receive = (i2s_receive_t) i2s_receive;
     tile1_ctx->i2s_cb_group.send = (i2s_send_t) i2s_send;
-    //tile1_ctx->i2s_cb_group.app_data = &tile1_ctx->c_i2s_to_dac;
     tile1_ctx->i2s_cb_group.app_data = tile1_ctx;
 
     tile1_ctx->p_i2s_dout[0] = PORT_I2S_DAC_DATA;
