@@ -16,7 +16,7 @@
 #define appconfPOWER_THRESHOLD                  (float)0.00001
 #define appconfAUDIO_CLOCK_FREQUENCY            24576000
 #define appconfPDM_CLOCK_FREQUENCY              3072000
-#define appconfPIPELINE_AUDIO_SAMPLE_RATE       16000
+#define appconfPIPELINE_AUDIO_SAMPLE_RATE       32000
 
 /* MLP app-related config */
 #define appconfUART_BAUD_RATE                   115200

@@ -60,7 +60,7 @@ int aic3204_init(i2c_master_t *i2c_master_ctx)
 		// Power up NDAC and set to 1
 		aic3204_reg_write(AIC3204_NDAC, 0x81) == 0 &&
 		// Power up MDAC and set to 4
-		aic3204_reg_write(AIC3204_MDAC, 0x84) == 0 &&
+		aic3204_reg_write(AIC3204_MDAC, 0x82) == 0 &&
         // Power up NADC and set to 1
 		aic3204_reg_write(AIC3204_NADC, 0x81) == 0 &&
         // Power up MADC and set to 4

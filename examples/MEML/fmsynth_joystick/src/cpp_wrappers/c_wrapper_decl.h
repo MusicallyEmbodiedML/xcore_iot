@@ -13,6 +13,7 @@
 // FMSynth
 extern void fmsynth_init(float sample_rate);
 extern int32_t fmsynth_generate(void);
+extern int32_t sinetone_generate(void);
 // Interface
 extern void interface_init(chanend_t, chanend_t, chanend_t, chanend_t);
 // Parallel tasks

@@ -70,7 +70,7 @@ target_link_options(${MEML_APP_NAME} PRIVATE ${APP_LINK_OPTIONS})
 
 # MCLK_FREQ,  PDM_FREQ, MIC_COUNT,  SAMPLES_PER_FRAME
 mic_array_vanilla_add( ${MEML_APP_NAME}
-    24576000  3072000   2           256 )
+    24576000  6144000   2           256 )
 
 #**********************
 # Create run and debug targets

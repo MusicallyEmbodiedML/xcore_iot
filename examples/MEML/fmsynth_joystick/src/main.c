@@ -42,8 +42,8 @@ void main_tile1(chanend_t c_gpio, chanend_t c_nn_paramupdate)
 {
     platform_init_tile_1(c_gpio, c_nn_paramupdate);
 
-    streaming_channel_t s_chan_ab = s_chan_alloc();
-    streaming_channel_t s_chan_bc = s_chan_alloc();
+    streaming_channel_t s_chan_ac = s_chan_alloc();
+    //streaming_channel_t s_chan_bc = s_chan_alloc();
     streaming_channel_t s_chan_output = s_chan_alloc();
     channel_t chan_decoupler = chan_alloc();
 
@@ -51,9 +51,9 @@ void main_tile1(chanend_t c_gpio, chanend_t c_nn_paramupdate)
 
     PAR_JOBS (
         PJOB(ma_vanilla_task, (chan_decoupler.end_a)),
-        PJOB(ap_stage_a, (chan_decoupler.end_b, s_chan_ab.end_a)),
-        PJOB(ap_stage_b, (s_chan_ab.end_b, s_chan_bc.end_a, tile1_ctx->c_from_gpio)),
-        PJOB(ap_stage_c, (s_chan_bc.end_b, s_chan_output.end_a, tile1_ctx->c_to_gpio)),
+        PJOB(ap_stage_a, (chan_decoupler.end_b, s_chan_ac.end_a)),
+        //PJOB(ap_stage_b, (s_chan_ab.end_b, s_chan_bc.end_a, tile1_ctx->c_from_gpio)),
+        PJOB(ap_stage_c, (s_chan_ac.end_b, s_chan_output.end_a, tile1_ctx->c_to_gpio)),
         PJOB(i2s_master, (&tile1_ctx->i2s_cb_group, tile1_ctx->p_i2s_dout, 1, NULL, 0, tile1_ctx->p_bclk, tile1_ctx->p_lrclk, tile1_ctx->p_mclk, tile1_ctx->bclk)),
         PJOB(fmsynth_paramupdate_task, (tile1_ctx->c_nn_paramupdate))
     );
