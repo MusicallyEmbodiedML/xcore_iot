@@ -54,9 +54,9 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
 #if ENABLE_FMSYNTH
         for (int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++) {
             int32_t y1 = fmsynth_generate() / 10;
-            int32_t y2 = sinetone_generate() / 10;
+            //int32_t y2 = sinetone_generate() / 10;
             output[0][smp] = y1;
-            output[1][smp] = y2;
+            output[1][smp] = y1;
         }
 #endif  // ENABLE_FMSYNTH
         // send the frame to the next stage
