@@ -90,12 +90,13 @@ static void i2s_send(tile1_ctx_t *app_data, size_t num_out, int32_t *i2s_sample_
     
     if(!init_pause) {
         uint32_t time_now = get_reference_time();
-        while(get_reference_time() < (time_now + 1000000)); //seems stable with this delay
+        //while(get_reference_time() < (time_now + 1000000)); //seems stable with this delay
+        //while(get_reference_time() < (time_now + 100000000)); //seems stable with this delay
         init_pause = true;        
     }
     if(triggered_tx < N_INIT) {
         uint32_t time_now = get_reference_time();
-        while(get_reference_time() < (time_now + 10000)); //seems stable with this delay
+        //while(get_reference_time() < (time_now + 10000)); //seems stable with this delay
         // send blank frames
         memcpy(init_frame, (uint32_t*)i2s_sample_buf, 2);
         debug_printf("init tx: %d\n", triggered_tx);
