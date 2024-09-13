@@ -74,39 +74,27 @@ static void i2s_receive(tile1_ctx_t *app_data, size_t num_in, const int32_t *i2s
 
     chanend_t *c_in = &app_data->c_adc_to_i2s;
     s_chan_out_buf_word(*c_in, (uint32_t*)i2s_sample_buf, appconfMIC_COUNT);
-    if (triggered_rx < 10){
-        debug_printf("triggered rx: %d\n", triggered_rx);
-        triggered_rx++;
-    }
 }
 
 I2S_CALLBACK_ATTR
 static void i2s_send(tile1_ctx_t *app_data, size_t num_out, int32_t *i2s_sample_buf)
 {
-    int N_INIT = 2;
+    int N_INIT = appconfAUDIO_FRAME_LENGTH + 1;
     int32_t init_frame[2] = {0};
     chanend_t *c_out = &app_data->c_i2s_to_dac;
 
     
     if(!init_pause) {
         uint32_t time_now = get_reference_time();
-        //while(get_reference_time() < (time_now + 1000000)); //seems stable with this delay
-        //while(get_reference_time() < (time_now + 100000000)); //seems stable with this delay
         init_pause = true;        
     }
     if(triggered_tx < N_INIT) {
         uint32_t time_now = get_reference_time();
-        //while(get_reference_time() < (time_now + 10000)); //seems stable with this delay
         // send blank frames
         memcpy(init_frame, (uint32_t*)i2s_sample_buf, 2);
-        debug_printf("init tx: %d\n", triggered_tx);
         triggered_tx++;
     } else {
         s_chan_in_buf_word(*c_out, (uint32_t*)i2s_sample_buf, appconfMIC_COUNT);
-        if (triggered_tx < 10){
-            debug_printf("triggered tx: %d\n", triggered_tx);
-            triggered_tx++;
-        }  
     }    
 }
 

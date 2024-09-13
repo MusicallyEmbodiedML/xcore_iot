@@ -95,18 +95,18 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
                 // recieve frame over the channel
                 s_chan_in_buf_word(c_input, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
                 // calculate the headroom of the new frames
-                bfp_s32_headroom(&ch0);
-                bfp_s32_headroom(&ch1);
-                // update the gain
-                float power = (float)gain_db / 20.0;
-                float gain_fl = powf(10.0, power);
-                float_s32_t gain = f32_to_float_s32(gain_fl);
-                // scale both channels 
-                bfp_s32_scale(&ch0, &ch0, gain);
-                bfp_s32_scale(&ch1, &ch1, gain);
-                // normalise exponent
-                bfp_s32_use_exponent(&ch0, appconfEXP);
-                bfp_s32_use_exponent(&ch1, appconfEXP);
+                // bfp_s32_headroom(&ch0);
+                // bfp_s32_headroom(&ch1);
+                // // update the gain
+                // float power = (float)gain_db / 20.0;
+                // float gain_fl = powf(10.0, power);
+                // float_s32_t gain = f32_to_float_s32(gain_fl);
+                // // scale both channels 
+                // bfp_s32_scale(&ch0, &ch0, gain);
+                // bfp_s32_scale(&ch1, &ch1, gain);
+                // // normalise exponent
+                // bfp_s32_use_exponent(&ch0, appconfEXP);
+                // bfp_s32_use_exponent(&ch1, appconfEXP);
                 // send frame over the channel
                 s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
             }
@@ -182,8 +182,7 @@ void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
                     }
                 }
                 // send frame over the channel
-                s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);                
-                //new_frame = true;
+                s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
             }
             continue;
         }
