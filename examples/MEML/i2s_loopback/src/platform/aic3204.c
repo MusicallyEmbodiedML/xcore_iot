@@ -57,12 +57,12 @@ int aic3204_init(i2c_master_t *i2c_master_ctx)
 		// Program clock settings
 
 		// Default is CODEC_CLKIN is from MCLK pin. Don't need to change this.
-		// Power up NDAC and set to 2
-		aic3204_reg_write(AIC3204_NDAC, 0x82) == 0 &&
+		// Power up NDAC and set to 1
+		aic3204_reg_write(AIC3204_NDAC, 0x81) == 0 &&
 		// Power up MDAC and set to 2
 		aic3204_reg_write(AIC3204_MDAC, 0x82) == 0 &&
-        // Power up NADC and set to 2
-		aic3204_reg_write(AIC3204_NADC, 0x82) == 0 &&
+        // Power up NADC and set to 1
+		aic3204_reg_write(AIC3204_NADC, 0x81) == 0 &&
         // Power up MADC and set to 2
 	    aic3204_reg_write(AIC3204_MADC, 0x82) == 0 &&
 		// Program DOSR = 128
