@@ -131,7 +131,7 @@ int aic3204_init(i2c_master_t *i2c_master_ctx)
 	) {
 		// Wait for 2.5 sec for soft stepping to take effect
         hwtimer_t timer = hwtimer_alloc();
-        hwtimer_delay(timer, 250000);
+        hwtimer_delay(timer, 250000000);
         hwtimer_free(timer);
 
 	} else {
@@ -156,6 +156,10 @@ int aic3204_init(i2c_master_t *i2c_master_ctx)
 		// Unmute Left and Right ADC Digital Volume Control.
 		aic3204_reg_write(AIC3204_ADC_FGA_MUTE, 0x00) == 0
 	) {
+		// Wait for 2 msec
+        hwtimer_t timer = hwtimer_alloc();
+        hwtimer_delay(timer, 200000);
+        hwtimer_free(timer);				
 		return 0;
 	} else {
         debug_printf("Error during DAC power up\n");
