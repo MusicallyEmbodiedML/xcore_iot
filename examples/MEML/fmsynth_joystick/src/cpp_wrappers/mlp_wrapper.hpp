@@ -34,6 +34,7 @@ class Dataset {
  public:
     static void Add(std::vector<float> &feature, std::vector<float> &label);
     static void Train();
+    static void Dump();
 };
 
 void DebugDumpJSON();

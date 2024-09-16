@@ -72,104 +72,11 @@ void Dataset::Train()
     debug_printf("MLP- Trained.\n");
 }
 
-///
-// Pretty printing debug helper
-///
 
-
-static constexpr unsigned int CHAR_BUFF_SIZE = 16;
-static constexpr unsigned int kN_decimals = 6;
-
-
-static char * _float_to_char(float x, char *p) {
-    static const int ten_to_the_n_decimals = std::pow(10, kN_decimals);
-
-    char *s = p + CHAR_BUFF_SIZE - 1; // go to end of buffer
-    uint16_t decimals;  // variable to store the decimals
-    int units;  // variable to store the units (part to left of decimal place)
-    if (x < 0) { // take care of negative numbers
-        decimals = (int)(x * -ten_to_the_n_decimals) % ten_to_the_n_decimals;
-        units = (int)(-1 * x);
-    } else { // positive numbers
-        decimals = (int)(x * ten_to_the_n_decimals) % ten_to_the_n_decimals;
-        units = (int)x;
-    }
-
-    for (unsigned int n = 0; n < kN_decimals; n++) {
-        *--s = (decimals % 10) + '0';
-        decimals /= 10; // repeat for as many decimal places as you need
-    }
-    *--s = '.';
-
-    do {
-        *--s = (units % 10) + '0';
-        units /= 10;
-    } while (units > 0);
-    if (x < 0) *--s = '-'; // unary minus sign for negative numbers
-    return s;
+void Dataset::Dump()
+{
+    
 }
-
-
-
-static void PrintVector(std::vector<float> &v) {
-    debug_printf("[ ", v.size());
-    unsigned int howmany = 0;
-    for (auto &el : v) {
-        char str_buffer[CHAR_BUFF_SIZE] { 0 };
-        char *actual_buf = _float_to_char(el, str_buffer);
-        debug_printf("%s, ", actual_buf);
-        howmany++;
-    }
-    if (!howmany) {
-        debug_printf("Empty vector, size %d ", v.size());
-    };
-    debug_printf("],\n");
-}
-
-static void PrintNode(Node<float> &n) {
-    PrintVector(n.m_weights);
-}
-
-static void PrintLayer(Layer<float> &l) {
-    debug_printf("[ ");
-    for(auto &n : l.m_nodes) {
-        PrintNode(n);
-    }
-    debug_printf("],\n");
-}
-
-static void PrintModel(MLP<float> &m) {
-    debug_printf("\"model\": {");
-    for(auto &l : m.m_layers) {
-        PrintLayer(l);
-    }
-    debug_printf("},\n");
-}
-
-static void PrintMember(const char *name,
-        std::vector<std::vector<float>  > &fvec) {
-    debug_printf("\"%s\": {", name);
-    for(auto &f : fvec) {
-        PrintVector(f);
-    }
-    debug_printf("},\n");
-}
-
-static void PrintDataset() {
-    debug_printf("\"dataset\": {");
-    PrintMember("features", features);
-    PrintMember("labels", labels);
-    debug_printf("},\n");;
-}
-
-void DebugDumpJSON() {
-    PrintDataset();
-    PrintModel(mlp);
-}
-
-///
-// \end Pretty printing debug helper
-///
 
 
 void mlp_task(chanend_t dispatcher_nn,
@@ -185,7 +92,7 @@ void mlp_task(chanend_t dispatcher_nn,
     //for (unsigned int l=0; l < mlp->GetNumLayers(); l++) {
     //    mlp->SetLayerWeights(<TODO>);
     //}
-#if 0
+#if 0  //FIXME AM SELECT_RES does not trigger any event!
     SELECT_RES(
         CASE_THEN(nn_paramupdate, on_nn_paramupdate)
         //CASE_THEN(nn_data, on_nn_data),
@@ -235,13 +142,11 @@ void mlp_task(chanend_t dispatcher_nn,
         mlp.GetOutput(input, &output);
 
         // Send result
-    #if 1
         chan_out_buf_byte(
             nn_paramupdate,
             reinterpret_cast<uint8_t *>(output.data()),
             sizeof(num_t) * kN_synthparams
         );
-    #endif
 
     }  // while(true)
 #endif

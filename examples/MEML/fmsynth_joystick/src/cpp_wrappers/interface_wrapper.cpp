@@ -59,7 +59,7 @@ void MEMLInterface::SetToggleButton(te_button_idx button_n, bool state)
          if (state == mode_inference && mode_ == mode_training) {
             Dataset::Train();
             // Print debug model
-            DebugDumpJSON();
+            //DebugDumpJSON();
          }
          mode_ = static_cast<te_nn_mode>(state);
          std::string dbg_mode(( mode_ == mode_training ) ? "training" : "inference");
