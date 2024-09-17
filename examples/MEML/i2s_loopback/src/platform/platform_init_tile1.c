@@ -79,12 +79,12 @@ I2S_CALLBACK_ATTR
 static void i2s_send(tile1_ctx_t *app_data, size_t num_out, int32_t *i2s_sample_buf)
 {
     int N_INIT = appconfAUDIO_FRAME_LENGTH + 1;
-    int32_t init_frame[2] = {0};
+    int32_t init_frame[appconfMIC_COUNT] = {0};
     chanend_t *c_out = &app_data->c_i2s_to_dac;
 
     if(triggered_tx < N_INIT) {
         // send blank frames
-        memcpy(init_frame, (uint32_t*)i2s_sample_buf, 2);
+        memcpy(init_frame, (uint32_t*)i2s_sample_buf, appconfMIC_COUNT);
         triggered_tx++;
     } else {
         s_chan_in_buf_word(*c_out, (uint32_t*)i2s_sample_buf, appconfMIC_COUNT);
