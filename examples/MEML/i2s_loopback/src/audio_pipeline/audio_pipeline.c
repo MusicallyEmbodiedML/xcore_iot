@@ -73,6 +73,9 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
     bfp_s32_init(&ch1, output[1], appconfEXP, appconfAUDIO_FRAME_LENGTH, 0);
 
     int gain_db = appconfINITIAL_GAIN;
+    int sample_time = (int)(1.0e8/(double)appconfPIPELINE_AUDIO_SAMPLE_RATE);
+    int frame_time = appconfAUDIO_FRAME_LENGTH*sample_time;
+    int frame_pause = sample_time - 80;
 
     triggerable_disable_all();
     // initialise events
@@ -116,18 +119,23 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
             gpio_request:
             {
                 char msg = chanend_in_byte(c_from_gpio);
-                switch(msg)
-                {
-                default:
-                    break;
-                case 0x01:  /* Btn A */
-                    gain_db = (gain_db >= appconfAUDIO_PIPELINE_MAX_GAIN) ? gain_db : gain_db + appconfAUDIO_PIPELINE_GAIN_STEP;
-                    break;
-                case 0x02:  /* Btn B */
-                    gain_db = (gain_db <= appconfAUDIO_PIPELINE_MIN_GAIN) ? gain_db : gain_db - appconfAUDIO_PIPELINE_GAIN_STEP;
-                    break;
-                }
-                debug_printf("Gain set to %d\n", gain_db);
+                // switch(msg)
+                // {
+                // default:
+                //     break;
+                // case 0x01:  /* Btn A */
+                //     gain_db = (gain_db >= appconfAUDIO_PIPELINE_MAX_GAIN) ? gain_db : gain_db + appconfAUDIO_PIPELINE_GAIN_STEP;
+                //     break;
+                // case 0x02:  /* Btn B */
+                //     gain_db = (gain_db <= appconfAUDIO_PIPELINE_MIN_GAIN) ? gain_db : gain_db - appconfAUDIO_PIPELINE_GAIN_STEP;
+                //     break;
+                // }
+                //debug_printf("Gain set to %d\n", gain_db);
+                //1/48 kHz is ~20 us. For frame length 1, Pausing for 500+ ticks (10+ us) works ok, 
+                // 500, 1000 ticks works only rarely. 2000 is fairly consistent, which makes sense as it's just off 1 frame period
+                hwtimer_t timer = hwtimer_alloc();
+                hwtimer_delay(timer, frame_pause); //10 ns ticks
+                hwtimer_free(timer);	
             }
             continue;
         }

@@ -8,7 +8,6 @@
 
 int triggered_rx = 0;
 int triggered_tx = 0;
-static bool init_pause = false;
 
 static void tile1_setup_dac(void);
 static void tile1_i2s_init(void);
@@ -83,13 +82,7 @@ static void i2s_send(tile1_ctx_t *app_data, size_t num_out, int32_t *i2s_sample_
     int32_t init_frame[2] = {0};
     chanend_t *c_out = &app_data->c_i2s_to_dac;
 
-    
-    if(!init_pause) {
-        uint32_t time_now = get_reference_time();
-        init_pause = true;        
-    }
     if(triggered_tx < N_INIT) {
-        uint32_t time_now = get_reference_time();
         // send blank frames
         memcpy(init_frame, (uint32_t*)i2s_sample_buf, 2);
         triggered_tx++;
