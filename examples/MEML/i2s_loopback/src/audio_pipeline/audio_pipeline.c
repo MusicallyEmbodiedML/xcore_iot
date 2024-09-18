@@ -63,7 +63,7 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
     }
 }
 
-void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
+void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio, bool * i2s_restart) {
 
     // initialise the array which will hold the data
     int32_t DWORD_ALIGNED output[appconfMIC_COUNT][appconfAUDIO_FRAME_LENGTH];
@@ -74,7 +74,7 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
 
     int gain_db = appconfINITIAL_GAIN;
     int sample_time = (int)(1.0e8/(double)appconfPIPELINE_AUDIO_SAMPLE_RATE);
-    int frame_time = appconfAUDIO_FRAME_LENGTH*sample_time;
+    //int frame_time = appconfAUDIO_FRAME_LENGTH*sample_time;
     int frame_pause = sample_time - 80;
 
     triggerable_disable_all();
@@ -110,7 +110,16 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
                 // // normalise exponent
                 // bfp_s32_use_exponent(&ch0, appconfEXP);
                 // bfp_s32_use_exponent(&ch1, appconfEXP);
-                // send frame over the channel
+                
+                // if (insert_delay) {
+                //     //1/48 kHz is ~20.83 us. For frame length 1, Pausing for 500+ ticks (10+ us) works ok, 
+                //     // 500, 1000 ticks works only rarely. 2000 is fairly consistent, which makes sense as it's just off 1 frame period
+                //     hwtimer_t timer = hwtimer_alloc();
+                //     hwtimer_delay(timer, frame_pause); //10 ns ticks
+                //     hwtimer_free(timer);
+                //     insert_delay = false;
+                // }
+                // send frame over the channel     
                 s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
             }
             continue;
@@ -119,6 +128,7 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
             gpio_request:
             {
                 char msg = chanend_in_byte(c_from_gpio);
+                *i2s_restart = true;
                 // switch(msg)
                 // {
                 // default:
@@ -131,11 +141,6 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
                 //     break;
                 // }
                 //debug_printf("Gain set to %d\n", gain_db);
-                //1/48 kHz is ~20 us. For frame length 1, Pausing for 500+ ticks (10+ us) works ok, 
-                // 500, 1000 ticks works only rarely. 2000 is fairly consistent, which makes sense as it's just off 1 frame period
-                hwtimer_t timer = hwtimer_alloc();
-                hwtimer_delay(timer, frame_pause); //10 ns ticks
-                hwtimer_free(timer);	
             }
             continue;
         }

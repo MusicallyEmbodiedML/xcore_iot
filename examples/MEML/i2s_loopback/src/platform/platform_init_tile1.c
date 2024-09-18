@@ -8,6 +8,10 @@
 
 int triggered_rx = 0;
 int triggered_tx = 0;
+//int sample_time = (int)(1.0e8/(double)appconfPIPELINE_AUDIO_SAMPLE_RATE);
+#define SAMPLE_TIME 2083
+#define FRAME_TIME (appconfAUDIO_FRAME_LENGTH*SAMPLE_TIME)
+#define FRAME_PAUSE (FRAME_TIME - 80)
 
 static void tile1_setup_dac(void);
 static void tile1_i2s_init(void);
@@ -62,7 +66,7 @@ static void i2s_init(tile1_ctx_t *app_data, i2s_config_t *i2s_config)
 }
 
 I2S_CALLBACK_ATTR
-static i2s_restart_t i2s_restart_check(chanend_t *input_c)
+static i2s_restart_t i2s_restart_check(tile1_ctx_t *app_data)
 {
     return I2S_NO_RESTART;
 }
@@ -70,23 +74,32 @@ static i2s_restart_t i2s_restart_check(chanend_t *input_c)
 I2S_CALLBACK_ATTR
 static void i2s_receive(tile1_ctx_t *app_data, size_t num_in, const int32_t *i2s_sample_buf)
 {
-
     chanend_t *c_in = &app_data->c_adc_to_i2s;
+
     s_chan_out_buf_word(*c_in, (uint32_t*)i2s_sample_buf, appconfMIC_COUNT);
 }
 
 I2S_CALLBACK_ATTR
 static void i2s_send(tile1_ctx_t *app_data, size_t num_out, int32_t *i2s_sample_buf)
 {
-    int N_INIT = appconfAUDIO_FRAME_LENGTH + 1;
+    int N_INIT = 2*appconfAUDIO_FRAME_LENGTH;
     int32_t init_frame[appconfMIC_COUNT] = {0};
     chanend_t *c_out = &app_data->c_i2s_to_dac;
-
+     
     if(triggered_tx < N_INIT) {
         // send blank frames
         memcpy(init_frame, (uint32_t*)i2s_sample_buf, appconfMIC_COUNT);
         triggered_tx++;
     } else {
+        if (app_data->i2s_restart) {
+            //1/48 kHz is ~20.83 us. For frame length 1, Pausing for 500+ ticks (10+ us) works ok, 
+            // 500, 1000 ticks works only rarely. 2000 is fairly consistent, which makes sense as it's just off 1 frame period
+            hwtimer_t timer = hwtimer_alloc();
+            hwtimer_delay(timer, FRAME_PAUSE); //10 ns ticks
+            hwtimer_free(timer);
+            //debug_printf("inserting i2s delay\n");
+            app_data->i2s_restart = false;
+        }             
         s_chan_in_buf_word(*c_out, (uint32_t*)i2s_sample_buf, appconfMIC_COUNT);
     }    
 }
@@ -105,6 +118,7 @@ static void tile1_i2s_init(void)
     tile1_ctx->p_lrclk = PORT_I2S_LRCLK;
     tile1_ctx->p_mclk = PORT_MCLK_IN;
     tile1_ctx->bclk = I2S_CLKBLK;
+    tile1_ctx->i2s_restart = false;
 }
 
 static void tile1_mic_init(void)

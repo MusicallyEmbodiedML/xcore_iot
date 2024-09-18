@@ -14,6 +14,7 @@
 
 #include <quadflash.h>
 #include <quadflashlib.h>
+#include <stdbool.h>
 
 typedef struct tile0_struct tile0_ctx_t;
 struct tile0_struct {
@@ -38,7 +39,7 @@ struct tile1_struct {
     xclock_t bclk;
     chanend_t c_i2s_to_dac;
     chanend_t c_adc_to_i2s;
-    chanend_t c_init_codec;
+    bool i2s_restart;
 
     uart_rx_t uart_rx_ctx;
     uart_tx_t uart_tx_ctx;
