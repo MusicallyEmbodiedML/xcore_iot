@@ -8,10 +8,6 @@
 
 int triggered_rx = 0;
 int triggered_tx = 0;
-//int sample_time = (int)(1.0e8/(double)appconfPIPELINE_AUDIO_SAMPLE_RATE);
-#define SAMPLE_TIME 2083
-#define FRAME_TIME (appconfAUDIO_FRAME_LENGTH*SAMPLE_TIME)
-#define FRAME_PAUSE (FRAME_TIME - 80)
 
 static void tile1_setup_dac(void);
 static void tile1_i2s_init(void);
@@ -90,16 +86,7 @@ static void i2s_send(tile1_ctx_t *app_data, size_t num_out, int32_t *i2s_sample_
         // send blank frames
         memcpy(init_frame, (uint32_t*)i2s_sample_buf, appconfMIC_COUNT);
         triggered_tx++;
-    } else {
-        if (app_data->i2s_restart) {
-            //1/48 kHz is ~20.83 us. For frame length 1, Pausing for 500+ ticks (10+ us) works ok, 
-            // 500, 1000 ticks works only rarely. 2000 is fairly consistent, which makes sense as it's just off 1 frame period
-            hwtimer_t timer = hwtimer_alloc();
-            hwtimer_delay(timer, FRAME_PAUSE); //10 ns ticks
-            hwtimer_free(timer);
-            //debug_printf("inserting i2s delay\n");
-            app_data->i2s_restart = false;
-        }             
+    } else {     
         s_chan_in_buf_word(*c_out, (uint32_t*)i2s_sample_buf, appconfMIC_COUNT);
     }    
 }
@@ -118,7 +105,6 @@ static void tile1_i2s_init(void)
     tile1_ctx->p_lrclk = PORT_I2S_LRCLK;
     tile1_ctx->p_mclk = PORT_MCLK_IN;
     tile1_ctx->bclk = I2S_CLKBLK;
-    tile1_ctx->i2s_restart = false;
 }
 
 static void tile1_mic_init(void)

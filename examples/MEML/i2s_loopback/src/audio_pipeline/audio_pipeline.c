@@ -63,7 +63,7 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
     }
 }
 
-void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio, bool * i2s_restart) {
+void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
 
     // initialise the array which will hold the data
     int32_t DWORD_ALIGNED output[appconfMIC_COUNT][appconfAUDIO_FRAME_LENGTH];
@@ -73,9 +73,6 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio, bo
     bfp_s32_init(&ch1, output[1], appconfEXP, appconfAUDIO_FRAME_LENGTH, 0);
 
     int gain_db = appconfINITIAL_GAIN;
-    int sample_time = (int)(1.0e8/(double)appconfPIPELINE_AUDIO_SAMPLE_RATE);
-    //int frame_time = appconfAUDIO_FRAME_LENGTH*sample_time;
-    int frame_pause = sample_time - 80;
 
     triggerable_disable_all();
     // initialise events
@@ -97,29 +94,21 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio, bo
                 }
                 // recieve frame over the channel
                 s_chan_in_buf_word(c_input, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
-                // calculate the headroom of the new frames
-                // bfp_s32_headroom(&ch0);
-                // bfp_s32_headroom(&ch1);
-                // // update the gain
-                // float power = (float)gain_db / 20.0;
-                // float gain_fl = powf(10.0, power);
-                // float_s32_t gain = f32_to_float_s32(gain_fl);
-                // // scale both channels 
-                // bfp_s32_scale(&ch0, &ch0, gain);
-                // bfp_s32_scale(&ch1, &ch1, gain);
-                // // normalise exponent
-                // bfp_s32_use_exponent(&ch0, appconfEXP);
-                // bfp_s32_use_exponent(&ch1, appconfEXP);
+                //calculate the headroom of the new frames
+                bfp_s32_headroom(&ch0);
+                bfp_s32_headroom(&ch1);
+                // update the gain
+                float power = (float)gain_db / 20.0;
+                float gain_fl = powf(10.0, power);
+                float_s32_t gain = f32_to_float_s32(gain_fl);
+                // scale both channels 
+                bfp_s32_scale(&ch0, &ch0, gain);
+                bfp_s32_scale(&ch1, &ch1, gain);
+                // normalise exponent
+                bfp_s32_use_exponent(&ch0, appconfEXP);
+                bfp_s32_use_exponent(&ch1, appconfEXP);
                 
-                // if (insert_delay) {
-                //     //1/48 kHz is ~20.83 us. For frame length 1, Pausing for 500+ ticks (10+ us) works ok, 
-                //     // 500, 1000 ticks works only rarely. 2000 is fairly consistent, which makes sense as it's just off 1 frame period
-                //     hwtimer_t timer = hwtimer_alloc();
-                //     hwtimer_delay(timer, frame_pause); //10 ns ticks
-                //     hwtimer_free(timer);
-                //     insert_delay = false;
-                // }
-                // send frame over the channel     
+                //send frame over the channel     
                 s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
             }
             continue;
@@ -128,19 +117,17 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio, bo
             gpio_request:
             {
                 char msg = chanend_in_byte(c_from_gpio);
-                *i2s_restart = true;
-                // switch(msg)
-                // {
-                // default:
-                //     break;
-                // case 0x01:  /* Btn A */
-                //     gain_db = (gain_db >= appconfAUDIO_PIPELINE_MAX_GAIN) ? gain_db : gain_db + appconfAUDIO_PIPELINE_GAIN_STEP;
-                //     break;
-                // case 0x02:  /* Btn B */
-                //     gain_db = (gain_db <= appconfAUDIO_PIPELINE_MIN_GAIN) ? gain_db : gain_db - appconfAUDIO_PIPELINE_GAIN_STEP;
-                //     break;
-                // }
-                //debug_printf("Gain set to %d\n", gain_db);
+                switch(msg)
+                {
+                default:
+                    break;
+                case 0x01:  /* Btn A */
+                    gain_db = (gain_db >= appconfAUDIO_PIPELINE_MAX_GAIN) ? gain_db : gain_db + appconfAUDIO_PIPELINE_GAIN_STEP;
+                    break;
+                case 0x02:  /* Btn B */
+                    gain_db = (gain_db <= appconfAUDIO_PIPELINE_MIN_GAIN) ? gain_db : gain_db - appconfAUDIO_PIPELINE_GAIN_STEP;
+                    break;
+                }
             }
             continue;
         }
