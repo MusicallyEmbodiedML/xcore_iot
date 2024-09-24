@@ -8,6 +8,7 @@
 #include <xcore/triggerable.h>
 #include <xcore/hwtimer.h>
 #include <xcore/interrupt.h>
+#include <xscope.h>
 
 #include <stdbool.h>
 
@@ -51,7 +52,7 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
                 }        
                 // get the frame from the i2s input
                 s_chan_in_buf_word(c_input, (uint32_t*) input, appconfFRAMES_IN_ALL_CHANS);
-
+                xscope_int(0, 1);
                 // change the frame format to [channel][sample]
                 for(int ch = 0; ch < appconfMIC_COUNT; ch ++){
                     for(int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++){
@@ -60,9 +61,12 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
                 }
                 // Apply delay!
                 for(int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++){
-                    output[0][smp] = dl_left_process(output[0][smp]);
-                    output[1][smp] = dl_right_process(output[1][smp]);
+                    //output[0][smp] = dl_left_process(output[0][smp]);
+                    output[0][smp] = output[0][smp];
+                    //output[1][smp] = dl_right_process(output[1][smp]);
+                    output[1][smp] = output[1][smp];
                 }
+                xscope_int(0, 0);
                 // send the frame to the next stage
                 s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
             }
@@ -102,6 +106,7 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
                 }
                 // recieve frame over the channel
                 s_chan_in_buf_word(c_input, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
+#if 0
                 //calculate the headroom of the new frames
                 bfp_s32_headroom(&ch0);
                 bfp_s32_headroom(&ch1);
@@ -115,7 +120,7 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
                 // normalise exponent
                 bfp_s32_use_exponent(&ch0, appconfEXP);
                 bfp_s32_use_exponent(&ch1, appconfEXP);
-                
+#endif  // 0              
                 //send frame over the channel     
                 s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
             }
@@ -125,6 +130,7 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
             gpio_request:
             {
                 char msg = chanend_in_byte(c_from_gpio);
+#if 0
                 switch(msg)
                 {
                 default:
@@ -136,6 +142,7 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
                     gain_db = (gain_db <= appconfAUDIO_PIPELINE_MIN_GAIN) ? gain_db : gain_db - appconfAUDIO_PIPELINE_GAIN_STEP;
                     break;
                 }
+#endif  // 0
             }
             continue;
         }
@@ -169,6 +176,8 @@ void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
                 uint8_t led_byte = 0;
                 // recieve frame over the channel
                 s_chan_in_buf_word(c_input, (uint32_t*) input, appconfFRAMES_IN_ALL_CHANS);
+                xscope_int(1, 1);
+#if 0
                 // calculate the headroom of the new frames
                 bfp_s32_headroom(&ch0);
                 bfp_s32_headroom(&ch1);
@@ -183,12 +192,14 @@ void ap_stage_c(chanend_t c_input, chanend_t c_output, chanend_t c_to_gpio) {
                 }
                 // send led value to gpio
                 chanend_out_byte(c_to_gpio, led_byte);
+#endif  // 0
                 // change the array format to [sample][channel]
                 for(int ch = 0; ch < appconfMIC_COUNT; ch ++){
                     for(int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++){
                         output[smp][ch] = input[ch][smp];
                     }
                 }
+                xscope_int(1, 0);
                 // send frame over the channel
                 s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
             }

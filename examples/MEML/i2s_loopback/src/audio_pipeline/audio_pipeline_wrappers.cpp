@@ -15,10 +15,10 @@ static int dl_size_right = static_cast<int>(
 
 float dl_left_process(float x)
 {
-    return dl_left.dl(x, dl_size_left, 0.3);
+    return x;//dl_left.dl(x, dl_size_left, 0.3);
 }
 
 float dl_right_process(float x)
 {
-    return dl_right.dl(x, dl_size_right, 0.3);
+    return x;//dl_right.dl(x, dl_size_right, 0.3);
 }
