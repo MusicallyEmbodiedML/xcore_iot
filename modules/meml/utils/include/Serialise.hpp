@@ -60,6 +60,13 @@ class Serialise {
         
         char *buf_ptr = buffer.data() + w_head;
         size_t size = payload.size() * sizeof(T);
+        // Check memory safety
+        size_t total_size_bytes = (w_head + size);
+        size_t current_size_bytes = buffer.size();
+        if (total_size_bytes > current_size_bytes) {
+            buffer.resize(total_size_bytes);
+        }
+        // Perform the copy
         std::memcpy(
             buf_ptr,
             reinterpret_cast<char*>(payload.data()),
@@ -74,7 +81,9 @@ class Serialise {
             std::vector<T> &payload) {
 
         char *buf_ptr = buffer.data() + r_head;
+        // Check memory safety
         payload.resize(size);
+        // Perform the copy
         std::memcpy(
             reinterpret_cast<char*>(payload.data()),
             buf_ptr,
