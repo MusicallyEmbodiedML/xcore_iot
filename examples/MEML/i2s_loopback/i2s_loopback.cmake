@@ -1,7 +1,8 @@
 #**********************
 # Gather Sources
 #**********************
-file(GLOB_RECURSE APP_SOURCES ${CMAKE_CURRENT_LIST_DIR}/src/*.c )
+file(GLOB_RECURSE APP_SOURCES ${CMAKE_CURRENT_LIST_DIR}/src/*.c
+                              ${CMAKE_CURRENT_LIST_DIR}/src/*.cpp )
 set(APP_INCLUDES
     ${CMAKE_CURRENT_LIST_DIR}/src
     ${CMAKE_CURRENT_LIST_DIR}/src/audio_pipeline
@@ -57,7 +58,10 @@ target_sources(meml_i2s_loopback PUBLIC ${APP_SOURCES})
 target_include_directories(meml_i2s_loopback PUBLIC ${APP_INCLUDES})
 target_compile_definitions(meml_i2s_loopback PRIVATE ${APP_COMPILE_DEFINITIONS})
 target_compile_options(meml_i2s_loopback PRIVATE ${APP_COMPILER_FLAGS})
-target_link_libraries(meml_i2s_loopback PUBLIC core::general io::all framework_core_multitile_support)
+target_link_libraries(meml_i2s_loopback PUBLIC
+    core::general io::all
+    framework_core_multitile_support
+    meml_lib)
 target_link_options(meml_i2s_loopback PRIVATE ${APP_LINK_OPTIONS})
 
 # MCLK_FREQ,  PDM_FREQ, MIC_COUNT,  SAMPLES_PER_FRAME

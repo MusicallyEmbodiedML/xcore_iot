@@ -24,6 +24,9 @@ static bool triggered_stage_a = false;
 static bool triggered_stage_b = false;
 static bool triggered_stage_c = false;
 
+extern float dl_left_process(float);
+extern float dl_right_process(float);
+
 //#include <hwtimer.h>
 void ap_stage_a(chanend_t c_input, chanend_t c_output) {
     // initialise the array which will hold the data
@@ -54,6 +57,11 @@ void ap_stage_a(chanend_t c_input, chanend_t c_output) {
                     for(int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++){
                         output[ch][smp] = input[smp][ch];
                     }
+                }
+                // Apply delay!
+                for(int smp = 0; smp < appconfAUDIO_FRAME_LENGTH; smp ++){
+                    output[0][smp] = dl_left_process(output[0][smp]);
+                    output[1][smp] = dl_right_process(output[1][smp]);
                 }
                 // send the frame to the next stage
                 s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
