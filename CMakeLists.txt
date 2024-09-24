@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 3.21)
+include(CMakePrintHelpers)
+
+#set(CMAKE_BUILD_TYPE Debug)
 
 ## Disable in-source build.
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")

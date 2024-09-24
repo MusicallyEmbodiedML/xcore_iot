@@ -7,36 +7,40 @@
 #include "burn.h"
 #include "audio_pipeline.h"
 #include "platform_init.h"
+#include "c_wrapper_decl.h"
 
 
-
-void main_tile0(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
+void main_tile0(chanend_t c_gpio, chanend_t c_nn_paramupdate)
 {
-    (void)c0;
-    (void)c2;
-    (void)c3;
+    // Joystick coordinates channel
+    channel_t chan_dispatcher_nn = chan_alloc();
+    // Data points channel
+    channel_t chan_interface_nn_data = chan_alloc();
+    // Training event channel
+    channel_t chan_interface_nn_train = chan_alloc();
 
-    platform_init_tile_0(c1);
+    platform_init_tile_0(c_gpio, c_nn_paramupdate);
+
+    interface_init(
+        chan_dispatcher_nn.end_a,
+        tile0_ctx->c_nn_paramupdate,
+        chan_interface_nn_data.end_a,
+        chan_interface_nn_train.end_a);
 
     PAR_JOBS (
-        PJOB(spi_demo, (&tile0_ctx->spi_device_ctx)),
         PJOB(gpio_server, (tile0_ctx->c_from_gpio, tile0_ctx->c_to_gpio)),
-        PJOB(flash_demo, ()),
-        PJOB(burn, ()),
-        PJOB(burn, ()),
-        PJOB(burn, ()),
-        PJOB(burn, ()),
-        PJOB(burn, ())
+        PJOB(uart_rx_task, (&tile0_ctx->uart_rx_ctx)),
+        PJOB(mlp_task, (
+            chan_dispatcher_nn.end_b,
+            tile0_ctx->c_nn_paramupdate,
+            chan_interface_nn_data.end_b,
+            chan_interface_nn_train.end_b))
     );
 }
 
-void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
+void main_tile1(chanend_t c_gpio, chanend_t c_nn_paramupdate)
 {
-    (void)c1;
-    (void)c2;
-    (void)c3;
-
-    platform_init_tile_1(c0);
+    platform_init_tile_1(c_gpio, c_nn_paramupdate);
 
     streaming_channel_t s_chan_ab = s_chan_alloc();
     streaming_channel_t s_chan_bc = s_chan_alloc();
@@ -51,8 +55,6 @@ void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
         PJOB(ap_stage_b, (s_chan_ab.end_b, s_chan_bc.end_a, tile1_ctx->c_from_gpio)),
         PJOB(ap_stage_c, (s_chan_bc.end_b, s_chan_output.end_a, tile1_ctx->c_to_gpio)),
         PJOB(i2s_master, (&tile1_ctx->i2s_cb_group, tile1_ctx->p_i2s_dout, 1, NULL, 0, tile1_ctx->p_bclk, tile1_ctx->p_lrclk, tile1_ctx->p_mclk, tile1_ctx->bclk)),
-        PJOB(uart_rx_demo, (&tile1_ctx->uart_rx_ctx)),
-        PJOB(uart_tx_demo, (&tile1_ctx->uart_tx_ctx)),
-        PJOB(burn, ())
+        PJOB(fmsynth_paramupdate_task, (tile1_ctx->c_nn_paramupdate))
     );
 }

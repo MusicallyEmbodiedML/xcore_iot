@@ -14,4 +14,6 @@ add_subdirectory(rtos)
 add_subdirectory(qspi_fast_read)
 add_subdirectory(sample_rate_conversion)
 add_subdirectory(xscope_fileio)
-z
+
+# Add MEML directory
+add_subdirectory(meml)
