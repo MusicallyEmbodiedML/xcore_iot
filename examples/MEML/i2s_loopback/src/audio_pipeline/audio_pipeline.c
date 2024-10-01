@@ -107,7 +107,13 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
                 // normalise exponent
                 bfp_s32_use_exponent(&ch0, appconfEXP);
                 bfp_s32_use_exponent(&ch1, appconfEXP);
-                
+
+                //1/48 kHz is ~20 us. For frame length 1, Pausing for 500+ ticks (10+ us) works ok, 
+                // 500, 1000 ticks works only rarely. 2000 is fairly consistent, which makes sense as it's just off 1 frame period
+                hwtimer_t timer = hwtimer_alloc();
+                hwtimer_delay(timer, 100000); //10 ns ticks
+                hwtimer_free(timer);             
+
                 //send frame over the channel     
                 s_chan_out_buf_word(c_output, (uint32_t*) output, appconfFRAMES_IN_ALL_CHANS);
             }
@@ -127,7 +133,7 @@ void ap_stage_b(chanend_t c_input, chanend_t c_output, chanend_t c_from_gpio) {
                 case 0x02:  /* Btn B */
                     gain_db = (gain_db <= appconfAUDIO_PIPELINE_MIN_GAIN) ? gain_db : gain_db - appconfAUDIO_PIPELINE_GAIN_STEP;
                     break;
-                }
+                }              
             }
             continue;
         }
